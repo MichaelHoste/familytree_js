@@ -28,6 +28,11 @@ class Person
   siblings: ->
     _.difference(@parentRelation.children, [this])
 
+  niblings: ->
+    _.flatten(_.collect(@siblings(), (sibling) ->
+      sibling.children()
+    ))
+
   parentsSiblings: ->
     @father().siblings().concat(@mother().siblings())
 

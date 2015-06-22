@@ -19,7 +19,9 @@
     console.log(bart);
     console.log(bart.cousins());
     console.log(bart.parentsSiblings());
-    return console.log(homer.partners());
+    console.log(homer.partners());
+    console.log(patty.niblings());
+    return console.log(selma.niblings());
   });
 
   Person = (function() {
@@ -57,6 +59,12 @@
 
     Person.prototype.siblings = function() {
       return _.difference(this.parentRelation.children, [this]);
+    };
+
+    Person.prototype.niblings = function() {
+      return _.flatten(_.collect(this.siblings(), function(sibling) {
+        return sibling.children();
+      }));
     };
 
     Person.prototype.parentsSiblings = function() {

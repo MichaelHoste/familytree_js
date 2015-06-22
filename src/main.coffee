@@ -20,3 +20,5 @@ $ ->
   console.log(bart.cousins())         # => ling
   console.log(bart.parentsSiblings()) # => herb, patty, selma
   console.log(homer.partners())       # => marge
+  console.log(patty.niblings())       # => bart, lisa, maggie, ling
+  console.log(selma.niblings())       # => bart, lisa, maggie
