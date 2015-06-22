@@ -19,3 +19,4 @@ $ ->
   console.log(bart)
   console.log(bart.cousins())         # => ling
   console.log(bart.parentsSiblings()) # => herb, patty, selma
+  console.log(homer.partners())       # => marge

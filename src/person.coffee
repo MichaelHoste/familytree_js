@@ -7,11 +7,8 @@ class Person
     @partnerRelations = []
 
   partners: ->
-    _.collect(@partnerRelations, (relation) ->
-      if @sex == 'M'
-        relation.wife
-      else
-        relation.husband
+    _.collect(@partnerRelations, (relation) =>
+      relation[if @sex == 'M' then 'wife' else 'husband']
     )
 
   children: ->
@@ -39,9 +36,9 @@ class Person
       sibling.children()
     ))
 
-  relationWith: (name) ->
+  relationWith: (person) ->
     _.find(@partnerRelations, (relation) =>
-      (@sex == 'M' && relation.wife == name) || (@sex == 'F' && relation.husband == name)
+      (@sex == 'M' && relation.wife == person) || (@sex == 'F' && relation.husband == person)
     )
 
   addParents: (father_name = undefined, mother_name = undefined) ->

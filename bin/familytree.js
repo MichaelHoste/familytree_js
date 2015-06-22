@@ -18,7 +18,8 @@
     ling = selma.relationWith(fatherOfLing).addChild('Ling', 'F');
     console.log(bart);
     console.log(bart.cousins());
-    return console.log(bart.parentsSiblings());
+    console.log(bart.parentsSiblings());
+    return console.log(homer.partners());
   });
 
   Person = (function() {
@@ -30,12 +31,9 @@
     }
 
     Person.prototype.partners = function() {
+      var _this = this;
       return _.collect(this.partnerRelations, function(relation) {
-        if (this.sex === 'M') {
-          return relation.wife;
-        } else {
-          return relation.husband;
-        }
+        return relation[_this.sex === 'M' ? 'wife' : 'husband'];
       });
     };
 
@@ -71,10 +69,10 @@
       }));
     };
 
-    Person.prototype.relationWith = function(name) {
+    Person.prototype.relationWith = function(person) {
       var _this = this;
       return _.find(this.partnerRelations, function(relation) {
-        return (_this.sex === 'M' && relation.wife === name) || (_this.sex === 'F' && relation.husband === name);
+        return (_this.sex === 'M' && relation.wife === person) || (_this.sex === 'F' && relation.husband === person);
       });
     };
 
