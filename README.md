@@ -5,6 +5,8 @@ Javascript library to create family trees.
 
 ## Usage
 
+Just go to http://localhost:3000 (and look in the console)
+
 ## Developpment
 
 ### Installation
