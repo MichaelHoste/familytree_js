@@ -1,24 +1,32 @@
 $ ->
+  renderer = new PIXI.autoDetectRenderer(1024, 768, {
+    antialias: true,
+    backgroundColor: 0xFFFFFF
+  })
+
+  $('#content')[0].appendChild(renderer.view)
+
+  stage = new PIXI.Container()
+
   homer = new Person('Homer', 'M')
-  marge = homer.addPartner('Marge')
+  marge = homer.addPartner('Marge Bouvier')
+  selma = homer.addPartner('Selma Bouvier')
 
-  bart   = homer.relationWith(marge).addChild('Bart',   'M')
-  lisa   = homer.relationWith(marge).addChild('Lisa',   'F')
-  maggie = homer.relationWith(marge).addChild('Maggie', 'F')
+  homerNode  = new PersonNode(stage, homer)
+  margeNode  = new PersonNode(stage, marge)
+  selmaNode  = new PersonNode(stage, selma)
 
-  [abraham, mona]  = homer.addParents('Abraham', 'Mona')
-  [clancy, jackie] = marge.addParents('Clancy',  'Jackie')
+  homerMargeNode = new RelationNode(stage, homer.relationWith(marge))
+  homerSelmaNode = new RelationNode(stage, homer.relationWith(selma))
 
-  herb  = abraham.relationWith(mona)  .addChild('Herb',  'M')
-  patty = clancy .relationWith(jackie).addChild('Patty', 'F')
-  selma = clancy .relationWith(jackie).addChild('Selma', 'F')
+  rootNode = homerNode
+  rootNode.displayTree(400, 384)
 
-  fatherOfLing = selma.addPartner('Father of Ling')
-  ling         = selma.relationWith(fatherOfLing).addChild('Ling', 'F')
+  animate = ->
+    requestAnimationFrame(animate)
 
-  console.log(bart)
-  console.log(bart.cousins())         # => ling
-  console.log(bart.parentsSiblings()) # => herb, patty, selma
-  console.log(homer.partners())       # => marge
-  console.log(patty.niblings())       # => bart, lisa, maggie, ling
-  console.log(selma.niblings())       # => bart, lisa, maggie
+    rootNode.update()
+
+    renderer.render(stage)
+
+  animate()

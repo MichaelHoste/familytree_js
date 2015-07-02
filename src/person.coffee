@@ -17,13 +17,16 @@ class Person
     ))
 
   mother: ->
-    @parentRelation.wife
+    if @parentRelation then @parentRelation.wife
 
   father: ->
-    @parentRelation.husband
+    if @parentRelation then @parentRelation.husband
 
   parents: ->
-    [@father(), @mother()]
+    _.compact([@father(), @mother()])
+
+  grandparents: ->
+    @father().parents().concat(@mother().parents())
 
   siblings: ->
     _.difference(@parentRelation.children, [this])
@@ -46,16 +49,16 @@ class Person
       (@sex == 'M' && relation.wife == person) || (@sex == 'F' && relation.husband == person)
     )
 
-  addParents: (father_name = undefined, mother_name = undefined) ->
-    father_name = if father_name then father_name else "Father of #{@name}"
-    mother_name = if mother_name then mother_name else "Mother of #{@name}"
+  addParents: (fatherName = undefined, motherName = undefined) ->
+    fatherName = if fatherName then fatherName else "Father of #{@name}"
+    motherName = if motherName then motherName else "Mother of #{@name}"
 
     @parentRelation = new Relation()
     @parentRelation.children.push(this)
 
     # Links from relation to people
-    @parentRelation.husband = new Person(father_name, 'M')
-    @parentRelation.wife    = new Person(mother_name, 'F')
+    @parentRelation.husband = new Person(fatherName, 'M')
+    @parentRelation.wife    = new Person(motherName, 'F')
 
     # link from people to relation
     @parentRelation.husband.partnerRelations.push(@parentRelation)
@@ -68,15 +71,15 @@ class Person
 
     if @sex == 'M'
       relation.husband = this
-      wife_name        = if name then name else "Wife of #{@name}"
-      relation.wife    = new Person(wife_name, 'F')
+      wifeName         = if name then name else "Wife of #{@name}"
+      relation.wife    = new Person(wifeName, 'F')
       relation.wife.partnerRelations.push(relation)
       @partnerRelations.push(relation)
       return relation.wife
     else
       relation.wife    = this
-      husband_name     = if name then name else "Husband of #{@name}"
-      relation.husband = new Person(husband_name, 'M')
+      husbandName      = if name then name else "Husband of #{@name}"
+      relation.husband = new Person(husbandName, 'M')
       relation.husband.partnerRelations.push(relation)
       @partnerRelations.push(relation)
       return relation.husband
