@@ -305,7 +305,7 @@
           endX = distance + lineWidth;
         } else if (this.person.sex === 'F') {
           if (i !== 0) {
-            distance = distance - lineWidth - partnerRelation.wife.node.width();
+            distance = distance - lineWidth - partnerRelation.husband.node.width();
           }
           startX = distance + Constants.lineWidth / 2;
           endX = distance - lineWidth;

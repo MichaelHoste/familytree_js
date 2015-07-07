@@ -123,7 +123,7 @@ class PersonNode
         startX   = distance - Constants.lineWidth / 2
         endX     = distance + lineWidth
       else if @person.sex == 'F'
-        distance = distance - lineWidth - partnerRelation.wife.node.width() if i != 0
+        distance = distance - lineWidth - partnerRelation.husband.node.width() if i != 0
         startX   = distance + Constants.lineWidth / 2
         endX     = distance - lineWidth
 
