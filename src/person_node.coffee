@@ -13,6 +13,7 @@ class PersonNode
     @root            = false
     @dirty_root      = false
     @dirty_position  = true
+    @dirty_iterator  = 0
 
     @person.node = this
 
@@ -45,15 +46,13 @@ class PersonNode
     @stage.addChild(@text)
 
   displayTree: (x, y) ->
-    @root       = true
-    @dirty_root = true
+    @root           = true
+    @dirty_root     = true
+    @dirty_iterator = 0
     @setPosition(x, y)
 
   width: ->
     @graphics.width
-
-  height: ->
-    @graphics.height
 
   position: ->
     @text.position
@@ -104,6 +103,9 @@ class PersonNode
 
         partnerRelation.node.drawLine({ x: startX, y: startY }, { x: endX,   y: endY })
 
-      #@dirty_root = false
+      if @dirty_iterator == 5
+        @dirty_root = false
+      @dirty_iterator++
+
 
 

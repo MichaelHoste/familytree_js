@@ -15,6 +15,14 @@ class RelationNode
     @graphics = new PIXI.Graphics()
     @stage.addChild(@graphics)
 
+  globalWidth: ->
+    size =  0
+    size += @relation.husband.node.width()
+    size += @relation.wife.node.width()
+    size += @relation.husband.node.MARGIN
+    size += # chaque enfant + partenaires + globalWidth des relations
+    size
+
   # width: ->
   #   @graphics.width
 
@@ -29,11 +37,9 @@ class RelationNode
   #   @text.position.y = y
   #   @dirty = true
 
-  addStage: (stage) ->
-    stage.addChild(@graphics)
-
   drawLine: (from, to) ->
     @graphics.clear
     @graphics.lineStyle(LINE_WIDTH, 0x333333, 1)
     @graphics.moveTo(from.x, from.y)
     @graphics.lineTo(to.x, to.y)
+    false

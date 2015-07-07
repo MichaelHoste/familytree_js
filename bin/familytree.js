@@ -160,6 +160,7 @@
       this.root = false;
       this.dirty_root = false;
       this.dirty_position = true;
+      this.dirty_iterator = 0;
       this.person.node = this;
       this.initializeRectangle();
       this.initializeText();
@@ -195,15 +196,12 @@
     PersonNode.prototype.displayTree = function(x, y) {
       this.root = true;
       this.dirty_root = true;
+      this.dirty_iterator = 0;
       return this.setPosition(x, y);
     };
 
     PersonNode.prototype.width = function() {
       return this.graphics.width;
-    };
-
-    PersonNode.prototype.height = function() {
-      return this.graphics.height;
     };
 
     PersonNode.prototype.position = function() {
@@ -217,7 +215,7 @@
     };
 
     PersonNode.prototype.update = function() {
-      var distance, endX, endY, lastBoxWidth, partner, partnerRelation, startX, startY, _i, _j, _len, _len1, _ref, _ref1, _results;
+      var distance, endX, endY, lastBoxWidth, partner, partnerRelation, startX, startY, _i, _j, _len, _len1, _ref, _ref1;
       if (this.dirty_position) {
         this.graphics.width = this.text.width + PADDING;
         this.graphics.position.x = this.text.position.x - this.text.width / 2 - PADDING / 2;
@@ -243,7 +241,6 @@
         distance = -MARGIN - this.width() / 2;
         lastBoxWidth = this.width();
         _ref1 = this.person.partnerRelations;
-        _results = [];
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           partnerRelation = _ref1[_j];
           distance = distance + lastBoxWidth + MARGIN;
@@ -256,15 +253,18 @@
             startX = this.text.position.x - distance + LINE_WIDTH / 2;
             endX = this.text.position.x - distance - MARGIN;
           }
-          _results.push(partnerRelation.node.drawLine({
+          partnerRelation.node.drawLine({
             x: startX,
             y: startY
           }, {
             x: endX,
             y: endY
-          }));
+          });
         }
-        return _results;
+        if (this.dirty_iterator === 5) {
+          this.dirty_root = false;
+        }
+        return this.dirty_iterator++;
       }
     };
 
@@ -309,15 +309,21 @@
       return this.stage.addChild(this.graphics);
     };
 
-    RelationNode.prototype.addStage = function(stage) {
-      return stage.addChild(this.graphics);
+    RelationNode.prototype.globalWidth = function() {
+      var size;
+      size = 0;
+      size += this.relation.husband.node.width();
+      size += this.relation.wife.node.width();
+      size += this.relation.husband.node.MARGIN;
+      return size += size;
     };
 
     RelationNode.prototype.drawLine = function(from, to) {
       this.graphics.clear;
       this.graphics.lineStyle(LINE_WIDTH, 0x333333, 1);
       this.graphics.moveTo(from.x, from.y);
-      return this.graphics.lineTo(to.x, to.y);
+      this.graphics.lineTo(to.x, to.y);
+      return false;
     };
 
     return RelationNode;
