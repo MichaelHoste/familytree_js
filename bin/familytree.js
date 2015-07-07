@@ -215,57 +215,74 @@
     };
 
     PersonNode.prototype.update = function() {
-      var distance, endX, endY, lastBoxWidth, partner, partnerRelation, startX, startY, _i, _j, _len, _len1, _ref, _ref1;
-      if (this.dirty_position) {
-        this.graphics.width = this.text.width + PADDING;
-        this.graphics.position.x = this.text.position.x - this.text.width / 2 - PADDING / 2;
-        this.graphics.position.y = this.text.position.y - this.text.height + 6;
-        this.dirty_position = false;
-      }
+      this.update_position();
       if (this.dirty_root) {
-        distance = 0;
-        lastBoxWidth = this.width();
-        _ref = this.person.partners();
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          partner = _ref[_i];
-          if (this.person.sex === 'M') {
-            distance = distance + MARGIN + lastBoxWidth / 2 + partner.node.width() / 2;
-          } else {
-            distance = distance - MARGIN - lastBoxWidth / 2 - partner.node.width() / 2;
-          }
-          lastBoxWidth = partner.node.width();
-          partner.node.setPosition(this.text.position.x + distance, this.text.position.y);
-          partner.node.update();
-        }
-        startY = endY = this.graphics.position.y + HEIGHT / 2;
-        distance = -MARGIN - this.width() / 2;
-        lastBoxWidth = this.width();
-        _ref1 = this.person.partnerRelations;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          partnerRelation = _ref1[_j];
-          distance = distance + lastBoxWidth + MARGIN;
-          if (this.person.sex === 'M') {
-            lastBoxWidth = partnerRelation.wife.node.width();
-            startX = this.text.position.x + distance - LINE_WIDTH / 2;
-            endX = this.text.position.x + distance + MARGIN;
-          } else {
-            lastBoxWidth = partnerRelation.husband.node.width();
-            startX = this.text.position.x - distance + LINE_WIDTH / 2;
-            endX = this.text.position.x - distance - MARGIN;
-          }
-          partnerRelation.node.drawLine({
-            x: startX,
-            y: startY
-          }, {
-            x: endX,
-            y: endY
-          });
-        }
+        this.update_partner_positions();
+        this.update_relation_positions();
         if (this.dirty_iterator === 5) {
           this.dirty_root = false;
         }
         return this.dirty_iterator++;
       }
+    };
+
+    PersonNode.prototype.update_position = function() {
+      if (this.dirty_position) {
+        this.graphics.width = this.text.width + PADDING;
+        this.graphics.position.x = this.text.position.x - this.text.width / 2 - PADDING / 2;
+        this.graphics.position.y = this.text.position.y - this.text.height + 6;
+        return this.dirty_position = false;
+      }
+    };
+
+    PersonNode.prototype.update_partner_positions = function() {
+      var distance, lastBoxWidth, partner, _i, _len, _ref, _results;
+      distance = 0;
+      lastBoxWidth = this.width();
+      _ref = this.person.partners();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partner = _ref[_i];
+        if (this.person.sex === 'M') {
+          distance = distance + MARGIN + lastBoxWidth / 2 + partner.node.width() / 2;
+        } else {
+          distance = distance - MARGIN - lastBoxWidth / 2 - partner.node.width() / 2;
+        }
+        lastBoxWidth = partner.node.width();
+        partner.node.setPosition(this.text.position.x + distance, this.text.position.y);
+        _results.push(partner.node.update());
+      }
+      return _results;
+    };
+
+    PersonNode.prototype.update_relation_positions = function() {
+      var distance, endX, endY, lastBoxWidth, partnerRelation, startX, startY, _i, _len, _ref, _results;
+      startY = endY = this.graphics.position.y + HEIGHT / 2;
+      distance = -MARGIN - this.width() / 2;
+      lastBoxWidth = this.width();
+      _ref = this.person.partnerRelations;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partnerRelation = _ref[_i];
+        distance = distance + lastBoxWidth + MARGIN;
+        if (this.person.sex === 'M') {
+          lastBoxWidth = partnerRelation.wife.node.width();
+          startX = this.text.position.x + distance - LINE_WIDTH / 2;
+          endX = this.text.position.x + distance + MARGIN;
+        } else {
+          lastBoxWidth = partnerRelation.husband.node.width();
+          startX = this.text.position.x - distance + LINE_WIDTH / 2;
+          endX = this.text.position.x - distance - MARGIN;
+        }
+        _results.push(partnerRelation.node.drawLine({
+          x: startX,
+          y: startY
+        }, {
+          x: endX,
+          y: endY
+        }));
+      }
+      return _results;
     };
 
     return PersonNode;
