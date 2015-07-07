@@ -226,6 +226,7 @@
       if (this.dirty_root) {
         this.updatePartnerPositions();
         this.updateRelationPositions();
+        this.updateRelationChildren();
         if (this.dirty_iterator === 5) {
           this.dirty_root = false;
         }
@@ -301,6 +302,10 @@
       return _results;
     };
 
+    PersonNode.prototype.updateRelationChildren = function() {
+      return false;
+    };
+
     return PersonNode;
 
   })();
@@ -339,7 +344,7 @@
     };
 
     RelationNode.prototype.globalWidth = function() {
-      return Math.min(this.relationWidth(), this.childrenWidth());
+      return Math.max(this.relationWidth(), this.childrenWidth());
     };
 
     RelationNode.prototype.lineWidth = function() {
@@ -348,15 +353,25 @@
 
     RelationNode.prototype.relationWidth = function() {
       var size;
-      size = 0;
-      size += this.relation.husband.node.width();
+      size = this.relation.husband.node.width();
       size += this.relation.wife.node.width();
       size += Constants.margin;
       return size;
     };
 
     RelationNode.prototype.childrenWidth = function() {
-      return 10000;
+      var child, size, _i, _len, _ref;
+      size = 0;
+      _ref = this.relation.children;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        child = _ref[_i];
+        size += child.node.width();
+        size += Constants.margin;
+      }
+      if (this.relation.children.length > 0) {
+        size -= Constants.margin;
+      }
+      return size;
     };
 
     RelationNode.prototype.drawLine = function(from, to) {

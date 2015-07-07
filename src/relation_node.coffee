@@ -14,22 +14,26 @@ class RelationNode
     @stage.addChild(@graphics)
 
   globalWidth: ->
-    Math.min(@relationWidth(), @childrenWidth())
+    Math.max(@relationWidth(), @childrenWidth())
 
   lineWidth: ->
     @globalWidth() - @relation.husband.node.width() - @relation.wife.node.width()
 
   relationWidth: ->
-    size = 0
-    size += @relation.husband.node.width()
+    size =  @relation.husband.node.width()
     size += @relation.wife.node.width()
     size += Constants.margin
     size
 
   childrenWidth: ->
-    #size += # chaque enfant + partenaires + globalWidth des relations
-    #size
-    10000
+    # add relations of children and take size into account
+    size = 0
+    for child in @relation.children
+      size += child.node.width()
+      size += Constants.margin
+
+    size -= Constants.margin if @relation.children.length > 0
+    size
 
   # width: ->
   #   @graphics.width

@@ -62,6 +62,7 @@ class PersonNode
     if @dirty_root
       @updatePartnerPositions()
       @updateRelationPositions()
+      @updateRelationChildren()
 
       if @dirty_iterator == 5
         @dirty_root = false
@@ -111,3 +112,6 @@ class PersonNode
         endX     = distance - lineWidth
 
       partnerRelation.node.drawLine({ x: startX, y: startY }, { x: endX,   y: endY })
+
+  updateRelationChildren: ->
+    false
