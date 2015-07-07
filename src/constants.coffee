@@ -1,7 +1,9 @@
 class Constants
 
-  @height    = 40
-  @fontSize  = 15
-  @padding   = 20
-  @margin    = 40
-  @lineWidth = 2
+  @height         = 40
+  @padding        = 20
+  @margin         = 60
+  @fontSize       = 15
+  @baseLine       = 6
+  @lineWidth      = 2
+  @verticalMargin = @margin * 1.5

@@ -5,14 +5,15 @@ class PersonNode
     @person = person
 
     @root            = false
-    @dirty_root      = false
-    @dirty_position  = true
-    @dirty_iterator  = 0
+    @dirtyRoot      = false
+    @dirtyPosition  = true
+    @dirtyIterator  = 0
 
     @person.node = this
 
     @initializeRectangle()
     @initializeText()
+    @initializeVLine()
 
   initializeRectangle: ->
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
@@ -39,10 +40,18 @@ class PersonNode
 
     @stage.addChild(@text)
 
+  initializeVLine: ->
+    if @person.parentRelation
+      @vLine = new PIXI.Graphics()
+      @vLine.lineStyle(Constants.lineWidth, 0x333333, 1)
+      @vLine.moveTo(0, 0)
+      @vLine.lineTo(0, -Constants.verticalMargin / 2)
+      @stage.addChild(@vLine)
+
   displayTree: (x, y) ->
     @root           = true
-    @dirty_root     = true
-    @dirty_iterator = 0
+    @dirtyRoot     = true
+    @dirtyIterator = 0
     @setPosition(x, y)
 
   width: ->
@@ -54,26 +63,33 @@ class PersonNode
   setPosition: (x, y) ->
     @text.position.x = x
     @text.position.y = y
-    @dirty_position  = true
+    @dirtyPosition   = true
 
   update: ->
     @updatePosition()
 
-    if @dirty_root
+    if @dirtyRoot
       @updatePartnerPositions()
       @updateRelationPositions()
       @updateRelationChildren()
 
-      if @dirty_iterator == 5
-        @dirty_root = false
-      @dirty_iterator++
+      if @dirtyIterator == 10
+        @dirtyRoot = false
+      @dirtyIterator++
 
   updatePosition: ->
-    if @dirty_position
+    if @dirtyPosition
+      # Adapt graphics to to text and position it
       @graphics.width      = @text.width + Constants.padding
       @graphics.position.x = @text.position.x - @text.width / 2 - Constants.padding / 2
-      @graphics.position.y = @text.position.y - @text.height + 6
-      @dirty_position = false
+      @graphics.position.y = @text.position.y - @text.height + Constants.baseLine
+
+      # Position vLine on top of graphics
+      if @person.parentRelation
+        @vLine.position.x = @text.x
+        @vLine.position.y = @graphics.position.y
+
+      @dirtyPosition = false
 
   updatePartnerPositions: ->
     distance     = 0
@@ -92,7 +108,7 @@ class PersonNode
       partnerNode.update()
 
   updateRelationPositions: ->
-    startY = endY = @graphics.position.y + Constants.height/2
+    startY = endY = @graphics.position.y + Constants.height / 2
 
     if @person.sex == 'M'
       distance = @text.position.x + @width() / 2 # right of the first box
@@ -104,14 +120,30 @@ class PersonNode
 
       if @person.sex == 'M'
         distance = distance + lineWidth + partnerRelation.wife.node.width() if i != 0
-        startX   = distance - Constants.lineWidth/2
+        startX   = distance - Constants.lineWidth / 2
         endX     = distance + lineWidth
       else if @person.sex == 'F'
         distance = distance - lineWidth - partnerRelation.wife.node.width() if i != 0
-        startX   = distance + Constants.lineWidth/2
+        startX   = distance + Constants.lineWidth / 2
         endX     = distance - lineWidth
 
+      # Small horizontal line
       partnerRelation.node.drawLine({ x: startX, y: startY }, { x: endX,   y: endY })
 
+      # Vertical line
+      if partnerRelation.children.length > 0
+        partnerRelation.node.vLine.position.x = (startX + endX) / 2
+        partnerRelation.node.vLine.position.y = startY + Constants.verticalMargin / 4
+
+        for child in partnerRelation.children
+          child.node.setPosition(
+            (startX + endX) / 2,
+            @text.position.y + @graphics.height / 2 + Constants.verticalMargin
+          )
+          child.node.dirtyPosition = true
+          child.node.update()
+
   updateRelationChildren: ->
-    false
+    ;
+
+

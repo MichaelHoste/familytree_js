@@ -7,13 +7,17 @@
 
     Constants.height = 40;
 
-    Constants.fontSize = 15;
-
     Constants.padding = 20;
 
-    Constants.margin = 40;
+    Constants.margin = 60;
+
+    Constants.fontSize = 15;
+
+    Constants.baseLine = 6;
 
     Constants.lineWidth = 2;
+
+    Constants.verticalMargin = Constants.margin * 1.5;
 
     return Constants;
 
@@ -165,12 +169,13 @@
       this.stage = stage;
       this.person = person;
       this.root = false;
-      this.dirty_root = false;
-      this.dirty_position = true;
-      this.dirty_iterator = 0;
+      this.dirtyRoot = false;
+      this.dirtyPosition = true;
+      this.dirtyIterator = 0;
       this.person.node = this;
       this.initializeRectangle();
       this.initializeText();
+      this.initializeVLine();
     }
 
     PersonNode.prototype.initializeRectangle = function() {
@@ -200,10 +205,20 @@
       return this.stage.addChild(this.text);
     };
 
+    PersonNode.prototype.initializeVLine = function() {
+      if (this.person.parentRelation) {
+        this.vLine = new PIXI.Graphics();
+        this.vLine.lineStyle(Constants.lineWidth, 0x333333, 1);
+        this.vLine.moveTo(0, 0);
+        this.vLine.lineTo(0, -Constants.verticalMargin / 2);
+        return this.stage.addChild(this.vLine);
+      }
+    };
+
     PersonNode.prototype.displayTree = function(x, y) {
       this.root = true;
-      this.dirty_root = true;
-      this.dirty_iterator = 0;
+      this.dirtyRoot = true;
+      this.dirtyIterator = 0;
       return this.setPosition(x, y);
     };
 
@@ -218,28 +233,32 @@
     PersonNode.prototype.setPosition = function(x, y) {
       this.text.position.x = x;
       this.text.position.y = y;
-      return this.dirty_position = true;
+      return this.dirtyPosition = true;
     };
 
     PersonNode.prototype.update = function() {
       this.updatePosition();
-      if (this.dirty_root) {
+      if (this.dirtyRoot) {
         this.updatePartnerPositions();
         this.updateRelationPositions();
         this.updateRelationChildren();
-        if (this.dirty_iterator === 5) {
-          this.dirty_root = false;
+        if (this.dirtyIterator === 10) {
+          this.dirtyRoot = false;
         }
-        return this.dirty_iterator++;
+        return this.dirtyIterator++;
       }
     };
 
     PersonNode.prototype.updatePosition = function() {
-      if (this.dirty_position) {
+      if (this.dirtyPosition) {
         this.graphics.width = this.text.width + Constants.padding;
         this.graphics.position.x = this.text.position.x - this.text.width / 2 - Constants.padding / 2;
-        this.graphics.position.y = this.text.position.y - this.text.height + 6;
-        return this.dirty_position = false;
+        this.graphics.position.y = this.text.position.y - this.text.height + Constants.baseLine;
+        if (this.person.parentRelation) {
+          this.vLine.position.x = this.text.x;
+          this.vLine.position.y = this.graphics.position.y;
+        }
+        return this.dirtyPosition = false;
       }
     };
 
@@ -266,7 +285,7 @@
     };
 
     PersonNode.prototype.updateRelationPositions = function() {
-      var distance, endX, endY, i, lineWidth, partnerRelation, startX, startY, _i, _len, _ref, _results;
+      var child, distance, endX, endY, i, lineWidth, partnerRelation, startX, startY, _i, _len, _ref, _results;
       startY = endY = this.graphics.position.y + Constants.height / 2;
       if (this.person.sex === 'M') {
         distance = this.text.position.x + this.width() / 2;
@@ -291,20 +310,36 @@
           startX = distance + Constants.lineWidth / 2;
           endX = distance - lineWidth;
         }
-        _results.push(partnerRelation.node.drawLine({
+        partnerRelation.node.drawLine({
           x: startX,
           y: startY
         }, {
           x: endX,
           y: endY
-        }));
+        });
+        if (partnerRelation.children.length > 0) {
+          partnerRelation.node.vLine.position.x = (startX + endX) / 2;
+          partnerRelation.node.vLine.position.y = startY + Constants.verticalMargin / 4;
+          _results.push((function() {
+            var _j, _len1, _ref1, _results1;
+            _ref1 = partnerRelation.children;
+            _results1 = [];
+            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+              child = _ref1[_j];
+              child.node.setPosition((startX + endX) / 2, this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin);
+              child.node.dirtyPosition = true;
+              _results1.push(child.node.update());
+            }
+            return _results1;
+          }).call(this));
+        } else {
+          _results.push(void 0);
+        }
       }
       return _results;
     };
 
-    PersonNode.prototype.updateRelationChildren = function() {
-      return false;
-    };
+    PersonNode.prototype.updateRelationChildren = function() {};
 
     return PersonNode;
 
@@ -335,12 +370,21 @@
       this.relation = relation;
       this.dirty = true;
       this.relation.node = this;
-      this.initializeLine();
+      this.initializeHLine();
+      this.initializeVLine();
     }
 
-    RelationNode.prototype.initializeLine = function() {
-      this.graphics = new PIXI.Graphics();
-      return this.stage.addChild(this.graphics);
+    RelationNode.prototype.initializeHLine = function() {
+      this.hLine = new PIXI.Graphics();
+      return this.stage.addChild(this.hLine);
+    };
+
+    RelationNode.prototype.initializeVLine = function() {
+      this.vLine = new PIXI.Graphics();
+      this.vLine.lineStyle(Constants.lineWidth, 0x333333, 1);
+      this.vLine.moveTo(0, -Constants.verticalMargin / 4);
+      this.vLine.lineTo(0, Constants.verticalMargin / 4);
+      return this.stage.addChild(this.vLine);
     };
 
     RelationNode.prototype.globalWidth = function() {
@@ -375,10 +419,10 @@
     };
 
     RelationNode.prototype.drawLine = function(from, to) {
-      this.graphics.clear;
-      this.graphics.lineStyle(Constants.lineWidth, 0x333333, 1);
-      this.graphics.moveTo(from.x, from.y);
-      this.graphics.lineTo(to.x, to.y);
+      this.hLine.clear;
+      this.hLine.lineStyle(Constants.lineWidth, 0x333333, 1);
+      this.hLine.moveTo(from.x, from.y);
+      this.hLine.lineTo(to.x, to.y);
       return false;
     };
 

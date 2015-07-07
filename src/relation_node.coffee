@@ -7,11 +7,19 @@ class RelationNode
 
     @relation.node = this
 
-    @initializeLine()
+    @initializeHLine()
+    @initializeVLine()
 
-  initializeLine: ->
-    @graphics = new PIXI.Graphics()
-    @stage.addChild(@graphics)
+  initializeHLine: ->
+    @hLine = new PIXI.Graphics()
+    @stage.addChild(@hLine)
+
+  initializeVLine: ->
+    @vLine = new PIXI.Graphics()
+    @vLine.lineStyle(Constants.lineWidth, 0x333333, 1)
+    @vLine.moveTo(0, -Constants.verticalMargin / 4)
+    @vLine.lineTo(0,  Constants.verticalMargin / 4)
+    @stage.addChild(@vLine)
 
   globalWidth: ->
     Math.max(@relationWidth(), @childrenWidth())
@@ -36,10 +44,10 @@ class RelationNode
     size
 
   # width: ->
-  #   @graphics.width
+  #   @hLine.width
 
   # height: ->
-  #   @graphics.height
+  #   @hLine.height
 
   # position: ->
   #   @text.position
@@ -50,8 +58,8 @@ class RelationNode
   #   @dirty = true
 
   drawLine: (from, to) ->
-    @graphics.clear
-    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
-    @graphics.moveTo(from.x, from.y)
-    @graphics.lineTo(to.x, to.y)
+    @hLine.clear
+    @hLine.lineStyle(Constants.lineWidth, 0x333333, 1)
+    @hLine.moveTo(from.x, from.y)
+    @hLine.lineTo(to.x, to.y)
     false
