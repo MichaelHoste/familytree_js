@@ -243,21 +243,23 @@
     };
 
     PersonNode.prototype.updatePartnerPositions = function() {
-      var distance, i, lastBoxWidth, partner, _i, _len, _ref, _results;
+      var distance, i, lastBoxWidth, partnerNode, partnerRelation, _i, _len, _ref, _results;
       distance = 0;
       lastBoxWidth = this.width();
-      _ref = this.person.partners();
+      _ref = this.person.partnerRelations;
       _results = [];
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        partner = _ref[i];
+        partnerRelation = _ref[i];
         if (this.person.sex === 'M') {
-          distance = distance + Constants.margin + lastBoxWidth / 2 + partner.node.width() / 2;
+          partnerNode = partnerRelation.wife.node;
+          distance = distance + partnerRelation.node.lineWidth() + lastBoxWidth / 2 + partnerNode.width() / 2;
         } else {
-          distance = distance - Constants.margin - lastBoxWidth / 2 - partner.node.width() / 2;
+          partnerNode = partnerRelation.husband.node;
+          distance = distance - partnerRelation.node.lineWidth() - lastBoxWidth / 2 - partnerNode.width() / 2;
         }
-        lastBoxWidth = partner.node.width();
-        partner.node.setPosition(this.text.position.x + distance, this.text.position.y);
-        _results.push(partner.node.update());
+        lastBoxWidth = partnerNode.width();
+        partnerNode.setPosition(this.text.position.x + distance, this.text.position.y);
+        _results.push(partnerNode.update());
       }
       return _results;
     };

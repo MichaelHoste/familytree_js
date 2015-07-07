@@ -77,16 +77,18 @@ class PersonNode
   updatePartnerPositions: ->
     distance     = 0
     lastBoxWidth = @width()
-    for partner, i in @person.partners()
+
+    for partnerRelation, i in @person.partnerRelations
       if @person.sex == 'M'
-        distance = distance + Constants.margin + lastBoxWidth/2 + partner.node.width()/2
+        partnerNode  = partnerRelation.wife.node
+        distance     = distance + partnerRelation.node.lineWidth() + lastBoxWidth/2 + partnerNode.width()/2
       else
-        distance = distance - Constants.margin - lastBoxWidth/2 - partner.node.width()/2
+        partnerNode  = partnerRelation.husband.node
+        distance     = distance - partnerRelation.node.lineWidth() - lastBoxWidth/2 - partnerNode.width()/2
 
-      lastBoxWidth = partner.node.width()
-
-      partner.node.setPosition(@text.position.x + distance, @text.position.y)
-      partner.node.update()
+      lastBoxWidth = partnerNode.width()
+      partnerNode.setPosition(@text.position.x + distance, @text.position.y)
+      partnerNode.update()
 
   updateRelationPositions: ->
     startY = endY = @graphics.position.y + Constants.height/2
