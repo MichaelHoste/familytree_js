@@ -10,11 +10,13 @@ $ ->
 
   homer = new Person('Homer', 'M')
   marge = homer.addPartner('Marge Bouvier')
+  bart  = homer.relationWith(marge).addChild('Bart', 'M')
   selma = homer.addPartner('Selma Bouvier')
 
-  homerNode  = new PersonNode(stage, homer)
-  margeNode  = new PersonNode(stage, marge)
-  selmaNode  = new PersonNode(stage, selma)
+  homerNode = new PersonNode(stage, homer)
+  margeNode = new PersonNode(stage, marge)
+  selmaNode = new PersonNode(stage, selma)
+  bartNode  = new PersonNode(stage, bart)
 
   homerMargeNode = new RelationNode(stage, homer.relationWith(marge))
   homerSelmaNode = new RelationNode(stage, homer.relationWith(selma))

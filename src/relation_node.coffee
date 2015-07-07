@@ -1,7 +1,5 @@
 class RelationNode
 
-  LINE_WIDTH = 2
-
   constructor: (stage, relation) ->
     @stage    = stage
     @relation = relation
@@ -16,12 +14,22 @@ class RelationNode
     @stage.addChild(@graphics)
 
   globalWidth: ->
-    size =  0
+    Math.min(@relationWidth(), @childrenWidth())
+
+  lineWidth: ->
+    @globalWidth() - @relation.husband.node.width() - @relation.wife.node.width()
+
+  relationWidth: ->
+    size = 0
     size += @relation.husband.node.width()
     size += @relation.wife.node.width()
-    size += @relation.husband.node.MARGIN
-    size += # chaque enfant + partenaires + globalWidth des relations
+    size += Constants.margin
     size
+
+  childrenWidth: ->
+    #size += # chaque enfant + partenaires + globalWidth des relations
+    #size
+    10000
 
   # width: ->
   #   @graphics.width
@@ -39,7 +47,7 @@ class RelationNode
 
   drawLine: (from, to) ->
     @graphics.clear
-    @graphics.lineStyle(LINE_WIDTH, 0x333333, 1)
+    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
     @graphics.moveTo(from.x, from.y)
     @graphics.lineTo(to.x, to.y)
     false

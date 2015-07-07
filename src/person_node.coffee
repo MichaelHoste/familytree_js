@@ -1,11 +1,5 @@
 class PersonNode
 
-  HEIGHT     = 40
-  FONT_SIZE  = 15
-  PADDING    = 20
-  MARGIN     = 40
-  LINE_WIDTH = 2
-
   constructor: (stage, person) ->
     @stage  = stage
     @person = person
@@ -24,13 +18,13 @@ class PersonNode
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
 
     @graphics = new PIXI.Graphics()
-    @graphics.lineStyle(LINE_WIDTH, 0x333333, 1)
+    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
     @graphics.beginFill(color)
 
     if @person.sex == 'M'
-      @graphics.drawRect(0, 0, 200, HEIGHT)
+      @graphics.drawRect(0, 0, 200, Constants.height)
     else
-      @graphics.drawRoundedRect(0, 0, 200, HEIGHT, HEIGHT/5)
+      @graphics.drawRoundedRect(0, 0, 200, Constants.height, Constants.height/5)
 
     @graphics.position.x = -1000
     @graphics.position.y = -1000
@@ -38,7 +32,7 @@ class PersonNode
     @stage.addChild(@graphics)
 
   initializeText: ->
-    @text = new PIXI.Text(@person.name, { font : "#{FONT_SIZE}px Arial", fill : 0x222222 })
+    @text = new PIXI.Text(@person.name, { font : "#{Constants.fontSize}px Arial", fill : 0x222222 })
     @text.position.x = -1000
     @text.position.y = -1000
     @text.anchor.x   = 0.5
@@ -63,52 +57,55 @@ class PersonNode
     @dirty_position  = true
 
   update: ->
-    @update_position()
+    @updatePosition()
 
     if @dirty_root
-      @update_partner_positions()
-      @update_relation_positions()
+      @updatePartnerPositions()
+      @updateRelationPositions()
 
       if @dirty_iterator == 5
         @dirty_root = false
       @dirty_iterator++
 
-  update_position: ->
+  updatePosition: ->
     if @dirty_position
-      @graphics.width      = @text.width + PADDING
-      @graphics.position.x = @text.position.x - @text.width / 2 - PADDING / 2
+      @graphics.width      = @text.width + Constants.padding
+      @graphics.position.x = @text.position.x - @text.width / 2 - Constants.padding / 2
       @graphics.position.y = @text.position.y - @text.height + 6
       @dirty_position = false
 
-  update_partner_positions: ->
+  updatePartnerPositions: ->
     distance     = 0
     lastBoxWidth = @width()
-    for partner in @person.partners()
+    for partner, i in @person.partners()
       if @person.sex == 'M'
-        distance = distance + MARGIN + lastBoxWidth/2 + partner.node.width()/2
+        distance = distance + Constants.margin + lastBoxWidth/2 + partner.node.width()/2
       else
-        distance = distance - MARGIN - lastBoxWidth/2 - partner.node.width()/2
+        distance = distance - Constants.margin - lastBoxWidth/2 - partner.node.width()/2
 
       lastBoxWidth = partner.node.width()
 
       partner.node.setPosition(@text.position.x + distance, @text.position.y)
       partner.node.update()
 
-  update_relation_positions: ->
-    startY = endY = @graphics.position.y + HEIGHT/2
-    distance      = -MARGIN - @width()/2
-    lastBoxWidth  = @width()
+  updateRelationPositions: ->
+    startY = endY = @graphics.position.y + Constants.height/2
 
-    for partnerRelation in @person.partnerRelations
-      distance = distance + lastBoxWidth + MARGIN
+    if @person.sex == 'M'
+      distance = @text.position.x + @width() / 2 # right of the first box
+    else if @person.sex == 'F'
+      distance = @text.position.x - @width() / 2 # left of the first box
+
+    for partnerRelation, i in @person.partnerRelations
+      lineWidth = partnerRelation.node.lineWidth()
 
       if @person.sex == 'M'
-        lastBoxWidth = partnerRelation.wife.node.width()
-        startX = @text.position.x + distance - LINE_WIDTH/2
-        endX   = @text.position.x + distance + MARGIN
-      else
-        lastBoxWidth = partnerRelation.husband.node.width()
-        startX = @text.position.x - distance + LINE_WIDTH/2
-        endX   = @text.position.x - distance - MARGIN
+        distance = distance + lineWidth + partnerRelation.wife.node.width() if i != 0
+        startX   = distance - Constants.lineWidth/2
+        endX     = distance + lineWidth
+      else if @person.sex == 'F'
+        distance = distance - lineWidth - partnerRelation.wife.node.width() if i != 0
+        startX   = distance + Constants.lineWidth/2
+        endX     = distance - lineWidth
 
       partnerRelation.node.drawLine({ x: startX, y: startY }, { x: endX,   y: endY })
