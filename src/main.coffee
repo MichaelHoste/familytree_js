@@ -8,27 +8,28 @@ $ ->
 
   stage = new PIXI.Container()
 
-  homer  = new Person('Homer', 'M')
-  marge  = homer.addPartner('Marge Bouviers')
-  bart   = homer.relationWith(marge).addChild('Bart',   'M')
-  lisa   = homer.relationWith(marge).addChild('Lisa',   'F')
-  maggie = homer.relationWith(marge).addChild('Maggie', 'F')
-  aggie  = homer.relationWith(marge).addChild('Aggie', 'F')
-  selma  = homer.addPartner('Selma Bouvier')
+  homer    = new Person('Homer', 'M')
+  marge    = homer.addPartner('Marge Bouvier')
+  lisa     = homer.relationWith(marge).addChild('Lisa',   'F')
+  bart     = homer.relationWith(marge).addChild('Bart',   'M')
+  maggie   = homer.relationWith(marge).addChild('Maggie', 'F')
+  selma    = homer.addPartner('Selma Bouvier')
+  milhouse = lisa.addPartner('Milhouse')
 
-  homerNode  = new PersonNode(stage, homer)
-  margeNode  = new PersonNode(stage, marge)
-  selmaNode  = new PersonNode(stage, selma)
-  bartNode   = new PersonNode(stage, bart)
-  lisaNode   = new PersonNode(stage, lisa)
-  maggieNode = new PersonNode(stage, maggie)
-  aggieNode  = new PersonNode(stage, aggie)
+  homerNode    = new PersonNode(stage, homer)
+  margeNode    = new PersonNode(stage, marge)
+  selmaNode    = new PersonNode(stage, selma)
+  lisaNode     = new PersonNode(stage, lisa)
+  maggieNode   = new PersonNode(stage, maggie)
+  bartNode     = new PersonNode(stage, bart)
+  milhouseNode = new PersonNode(stage, milhouse)
 
-  homerMargeNode = new RelationNode(stage, homer.relationWith(marge))
-  homerSelmaNode = new RelationNode(stage, homer.relationWith(selma))
+  homerMargeNode   = new RelationNode(stage, homer.relationWith(marge))
+  homerSelmaNode   = new RelationNode(stage, homer.relationWith(selma))
+  lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse))
 
   rootNode = homerNode
-  rootNode.displayTree(400, 384)
+  rootNode.displayTree(300, 384)
 
   animate = ->
     requestAnimationFrame(animate)

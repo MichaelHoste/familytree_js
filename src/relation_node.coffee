@@ -42,25 +42,18 @@ class RelationNode
     # add relations of children and take size into account
     size = 0
     for child in @relation.children
-      size += child.node.width()
+      if child.partnerRelations.length > 0
+        size += child.node.width()
+
+        for partnerRelation in child.partnerRelations
+          size += partnerRelation.node.globalWidth() - child.node.width()
+      else
+        size += child.node.width()
       size += Constants.margin
 
     size -= Constants.margin if @relation.children.length > 0
+
     size
-
-  # width: ->
-  #   @hLine.width
-
-  # height: ->
-  #   @hLine.height
-
-  # position: ->
-  #   @text.position
-
-  # setPosition: (x, y) ->
-  #   @text.position.x = x
-  #   @text.position.y = y
-  #   @dirty = true
 
   drawHLine: (from, to) ->
     @hLine.clear()

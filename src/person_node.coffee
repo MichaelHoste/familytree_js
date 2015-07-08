@@ -49,7 +49,7 @@ class PersonNode
       @stage.addChild(@vLine)
 
   displayTree: (x, y) ->
-    @root           = true
+    @root          = true
     @dirtyRoot     = true
     @dirtyIterator = 0
     @setPosition(x, y)
@@ -73,7 +73,7 @@ class PersonNode
       @updateRelationPositions()
       #@updateRelationChildren()
 
-      if @dirtyIterator == 20
+      if @dirtyIterator == 10
         @dirtyRoot = false
       @dirtyIterator++
 
@@ -153,6 +153,9 @@ class PersonNode
 
     for child, i in partnerRelation.children
       child.node.setPosition(startX, y)
+      child.node.updatePartnerPositions()
+      child.node.updateRelationPositions()
+
       startX += Constants.margin + child.node.width() / 2
       startX += children[i+1].node.width() / 2 if i+1 < children.length
       child.node.update()
@@ -164,4 +167,5 @@ class PersonNode
       startY = endY = y + Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2
 
       partnerRelation.node.drawChildrenHLine({ x: startX, y: startY }, { x: endX, y: endY })
+
 
