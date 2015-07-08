@@ -142,13 +142,14 @@ class PersonNode
 
         @updateRelationChildrenPositions(
           partnerRelation,
-          startX,
+          if @person.sex == 'M' then startX else endX,
           @text.position.y + @graphics.height / 2 + Constants.verticalMargin
         )
 
   updateRelationChildrenPositions: (partnerRelation, lineStartX, y) ->
     children = partnerRelation.children
-    startX   = lineStartX - @width() + children[0].node.width() / 2 if children.length
+    husband  = partnerRelation.husband
+    startX   = lineStartX - husband.node.width() + children[0].node.width() / 2 if children.length
 
     for child, i in partnerRelation.children
       child.node.setPosition(startX, y)

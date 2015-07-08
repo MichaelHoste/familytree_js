@@ -13,7 +13,7 @@ $ ->
   bart   = homer.relationWith(marge).addChild('Bart',   'M')
   lisa   = homer.relationWith(marge).addChild('Lisa',   'F')
   maggie = homer.relationWith(marge).addChild('Maggie', 'F')
-  #aggie  = homer.relationWith(marge).addChild('Aggie', 'F')
+  aggie  = homer.relationWith(marge).addChild('Aggie', 'F')
   selma  = homer.addPartner('Selma Bouvier')
 
   homerNode  = new PersonNode(stage, homer)
@@ -22,7 +22,7 @@ $ ->
   bartNode   = new PersonNode(stage, bart)
   lisaNode   = new PersonNode(stage, lisa)
   maggieNode = new PersonNode(stage, maggie)
-  #aggieNode  = new PersonNode(stage, aggie)
+  aggieNode  = new PersonNode(stage, aggie)
 
   homerMargeNode = new RelationNode(stage, homer.relationWith(marge))
   homerSelmaNode = new RelationNode(stage, homer.relationWith(selma))

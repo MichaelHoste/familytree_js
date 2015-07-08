@@ -24,7 +24,7 @@
   })();
 
   $(function() {
-    var animate, bart, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, lisa, lisaNode, maggie, maggieNode, marge, margeNode, renderer, rootNode, selma, selmaNode, stage;
+    var aggie, aggieNode, animate, bart, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, lisa, lisaNode, maggie, maggieNode, marge, margeNode, renderer, rootNode, selma, selmaNode, stage;
     renderer = new PIXI.autoDetectRenderer(1024, 768, {
       antialias: true,
       backgroundColor: 0xFFFFFF
@@ -36,6 +36,7 @@
     bart = homer.relationWith(marge).addChild('Bart', 'M');
     lisa = homer.relationWith(marge).addChild('Lisa', 'F');
     maggie = homer.relationWith(marge).addChild('Maggie', 'F');
+    aggie = homer.relationWith(marge).addChild('Aggie', 'F');
     selma = homer.addPartner('Selma Bouvier');
     homerNode = new PersonNode(stage, homer);
     margeNode = new PersonNode(stage, marge);
@@ -43,6 +44,7 @@
     bartNode = new PersonNode(stage, bart);
     lisaNode = new PersonNode(stage, lisa);
     maggieNode = new PersonNode(stage, maggie);
+    aggieNode = new PersonNode(stage, aggie);
     homerMargeNode = new RelationNode(stage, homer.relationWith(marge));
     homerSelmaNode = new RelationNode(stage, homer.relationWith(selma));
     rootNode = homerNode;
@@ -327,7 +329,7 @@
           middleX = (startX + endX) / 2;
           partnerRelation.node.vLine.position.x = middleX;
           partnerRelation.node.vLine.position.y = startY + Constants.verticalMargin / 4;
-          _results.push(this.updateRelationChildrenPositions(partnerRelation, startX, this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin));
+          _results.push(this.updateRelationChildrenPositions(partnerRelation, this.person.sex === 'M' ? startX : endX, this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin));
         } else {
           _results.push(void 0);
         }
@@ -336,10 +338,11 @@
     };
 
     PersonNode.prototype.updateRelationChildrenPositions = function(partnerRelation, lineStartX, y) {
-      var child, children, endX, endY, i, startX, startY, _i, _len, _ref;
+      var child, children, endX, endY, husband, i, startX, startY, _i, _len, _ref;
       children = partnerRelation.children;
+      husband = partnerRelation.husband;
       if (children.length) {
-        startX = lineStartX - this.width() + children[0].node.width() / 2;
+        startX = lineStartX - husband.node.width() + children[0].node.width() / 2;
       }
       _ref = partnerRelation.children;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
