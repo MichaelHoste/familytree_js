@@ -24,7 +24,7 @@
   })();
 
   $(function() {
-    var animate, bart, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, lisa, lisaMilhouseNode, lisaNode, maggie, maggieNode, marge, margeNode, milhouse, milhouseNode, renderer, rootNode, selma, selmaNode, stage;
+    var animate, bart, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, kido, kido2, kido2Node, kido3, kido3Node, kidoNode, lisa, lisaMilhouseNode, lisaNelsonNode, lisaNode, maggie, maggieNode, marge, margeNode, milhouse, milhouseNode, nelson, nelsonJunior, nelsonJuniorNode, nelsonNode, renderer, rootNode, selma, selmaNode, stage;
     renderer = new PIXI.autoDetectRenderer(1024, 768, {
       antialias: true,
       backgroundColor: 0xFFFFFF
@@ -38,6 +38,11 @@
     maggie = homer.relationWith(marge).addChild('Maggie', 'F');
     selma = homer.addPartner('Selma Bouvier');
     milhouse = lisa.addPartner('Milhouse');
+    nelson = lisa.addPartner('Nelson');
+    kido = lisa.relationWith(milhouse).addChild('Kido', 'F');
+    kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M');
+    kido3 = lisa.relationWith(milhouse).addChild('Kido2', 'M');
+    nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M');
     homerNode = new PersonNode(stage, homer);
     margeNode = new PersonNode(stage, marge);
     selmaNode = new PersonNode(stage, selma);
@@ -45,11 +50,17 @@
     maggieNode = new PersonNode(stage, maggie);
     bartNode = new PersonNode(stage, bart);
     milhouseNode = new PersonNode(stage, milhouse);
+    nelsonNode = new PersonNode(stage, nelson);
+    kidoNode = new PersonNode(stage, kido);
+    kido2Node = new PersonNode(stage, kido2);
+    kido3Node = new PersonNode(stage, kido3);
+    nelsonJuniorNode = new PersonNode(stage, nelsonJunior);
     homerMargeNode = new RelationNode(stage, homer.relationWith(marge));
     homerSelmaNode = new RelationNode(stage, homer.relationWith(selma));
     lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse));
-    rootNode = homerNode;
-    rootNode.displayTree(300, 384);
+    lisaNelsonNode = new RelationNode(stage, lisa.relationWith(nelson));
+    rootNode = margeNode;
+    rootNode.displayTree(700, 384);
     animate = function() {
       requestAnimationFrame(animate);
       rootNode.update();
@@ -243,6 +254,17 @@
       return this.dirtyPosition = true;
     };
 
+    PersonNode.prototype.partnersWidth = function() {
+      var partnerRelation, size, _i, _len, _ref;
+      size = 0;
+      _ref = this.person.partnerRelations;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partnerRelation = _ref[_i];
+        size += partnerRelation.node.globalWidth() - this.width();
+      }
+      return size;
+    };
+
     PersonNode.prototype.update = function() {
       this.updatePosition();
       if (this.dirtyRoot) {
@@ -330,7 +352,7 @@
           middleX = (startX + endX) / 2;
           partnerRelation.node.vLine.position.x = middleX;
           partnerRelation.node.vLine.position.y = startY + Constants.verticalMargin / 4;
-          _results.push(this.updateRelationChildrenPositions(partnerRelation, this.person.sex === 'M' ? startX : endX, this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin));
+          _results.push(this.updateRelationChildrenPositions(partnerRelation, this.person.sex === 'M' ? startX : endX, this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin, middleX));
         } else {
           _results.push(void 0);
         }
@@ -338,12 +360,16 @@
       return _results;
     };
 
-    PersonNode.prototype.updateRelationChildrenPositions = function(partnerRelation, lineStartX, y) {
-      var child, children, endX, endY, husband, i, startX, startY, _i, _len, _ref;
+    PersonNode.prototype.updateRelationChildrenPositions = function(partnerRelation, lineStartX, y, middleX) {
+      var child, children, endX, endY, husband, i, size, startX, startY, _i, _len, _ref;
       children = partnerRelation.children;
       husband = partnerRelation.husband;
+      size = 0;
       if (children.length) {
-        startX = lineStartX - husband.node.width() + children[0].node.width() / 2;
+        size = children[0].node.partnersWidth();
+      }
+      if (children.length) {
+        startX = lineStartX - husband.node.width() + children[0].node.width() / 2 + size;
       }
       _ref = partnerRelation.children;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
@@ -351,9 +377,9 @@
         child.node.setPosition(startX, y);
         child.node.updatePartnerPositions();
         child.node.updateRelationPositions();
-        startX += Constants.margin + child.node.width() / 2;
+        startX += Constants.margin + child.node.width();
         if (i + 1 < children.length) {
-          startX += children[i + 1].node.width() / 2;
+          startX += children[i + 1].node.partnersWidth();
         }
         child.node.update();
       }

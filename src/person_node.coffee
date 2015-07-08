@@ -65,6 +65,12 @@ class PersonNode
     @text.position.y = y
     @dirtyPosition   = true
 
+  partnersWidth: ->
+    size = 0
+    for partnerRelation in @person.partnerRelations
+      size += partnerRelation.node.globalWidth() - @width()
+    size
+
   update: ->
     @updatePosition()
 
@@ -143,21 +149,26 @@ class PersonNode
         @updateRelationChildrenPositions(
           partnerRelation,
           if @person.sex == 'M' then startX else endX,
-          @text.position.y + @graphics.height / 2 + Constants.verticalMargin
+          @text.position.y + @graphics.height / 2 + Constants.verticalMargin,
+          middleX
         )
 
-  updateRelationChildrenPositions: (partnerRelation, lineStartX, y) ->
+  updateRelationChildrenPositions: (partnerRelation, lineStartX, y, middleX) ->
     children = partnerRelation.children
     husband  = partnerRelation.husband
-    startX   = lineStartX - husband.node.width() + children[0].node.width() / 2 if children.length
+
+    size = 0
+    size = children[0].node.partnersWidth() if children.length
+
+    startX   = lineStartX - husband.node.width() + children[0].node.width() / 2 + size if children.length
 
     for child, i in partnerRelation.children
       child.node.setPosition(startX, y)
       child.node.updatePartnerPositions()
       child.node.updateRelationPositions()
 
-      startX += Constants.margin + child.node.width() / 2
-      startX += children[i+1].node.width() / 2 if i+1 < children.length
+      startX += Constants.margin + child.node.width()
+      startX += children[i+1].node.partnersWidth() if i+1 < children.length
       child.node.update()
 
     # display horizontal line between all children
