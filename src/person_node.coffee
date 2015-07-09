@@ -45,7 +45,7 @@ class PersonNode
       @vLine = new PIXI.Graphics()
       @vLine.lineStyle(Constants.lineWidth, 0x333333, 1)
       @vLine.moveTo(0, 0)
-      @vLine.lineTo(0, -Constants.verticalMargin / 2)
+      @vLine.lineTo(0, -Constants.verticalMargin / 2 - Constants.lineWidth)
       @stage.addChild(@vLine)
 
   displayTree: (x, y) ->
@@ -134,12 +134,12 @@ class PersonNode
 
       if @person.sex == 'M'
         position          = position + previousLineWidth + previousNodeWidth
-        startX            = position - Constants.lineWidth / 2
+        startX            = position
         endX              = position + lineWidth
         previousNodeWidth = partnerRelation.wife.node.width()
       else if @person.sex == 'F'
         position          = position - previousLineWidth - previousNodeWidth
-        startX            = position + Constants.lineWidth / 2
+        startX            = position
         endX              = position - lineWidth
         previousNodeWidth = partnerRelation.husband.node.width()
 
@@ -170,7 +170,7 @@ class PersonNode
         child.node.setPosition(startX, y)
         child.node.display()
 
-        startX += Constants.margin + child.node.width() + Constants.lineWidth
+        startX += Constants.margin + child.node.width()
         startX += children[i+1].node.partnersWidth() if i+1 < children.length
         child.node.update()
 

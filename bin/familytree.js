@@ -228,7 +228,7 @@
         this.vLine = new PIXI.Graphics();
         this.vLine.lineStyle(Constants.lineWidth, 0x333333, 1);
         this.vLine.moveTo(0, 0);
-        this.vLine.lineTo(0, -Constants.verticalMargin / 2);
+        this.vLine.lineTo(0, -Constants.verticalMargin / 2 - Constants.lineWidth);
         return this.stage.addChild(this.vLine);
       }
     };
@@ -330,12 +330,12 @@
         lineWidth = partnerRelation.node.lineWidth();
         if (this.person.sex === 'M') {
           position = position + previousLineWidth + previousNodeWidth;
-          startX = position - Constants.lineWidth / 2;
+          startX = position;
           endX = position + lineWidth;
           previousNodeWidth = partnerRelation.wife.node.width();
         } else if (this.person.sex === 'F') {
           position = position - previousLineWidth - previousNodeWidth;
-          startX = position + Constants.lineWidth / 2;
+          startX = position;
           endX = position - lineWidth;
           previousNodeWidth = partnerRelation.husband.node.width();
         }
@@ -369,7 +369,7 @@
           child = _ref1[i];
           child.node.setPosition(startX, y);
           child.node.display();
-          startX += Constants.margin + child.node.width() + Constants.lineWidth;
+          startX += Constants.margin + child.node.width();
           if (i + 1 < children.length) {
             startX += children[i + 1].node.partnersWidth();
           }
