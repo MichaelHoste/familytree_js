@@ -152,16 +152,29 @@ class PersonNode
       partnerRelation.node.drawHLine()
 
   updateChildrenPositions: ->
-    for partnerRelation in @person.partnerRelations
+    for partnerRelation, i in @person.partnerRelations
       startX     = partnerRelation.node.hLineStartX
       endX       = partnerRelation.node.hLineEndX
       y          = @text.position.y + @graphics.height / 2 + Constants.verticalMargin
       children   = partnerRelation.children
       lineStartX = if @person.sex == 'M' then startX else endX
 
-      if children.length
+      if children.length > 1
         size   = children[0].node.partnersWidth()
         startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2 + size
+      else if children.length == 1
+        if i == 0 # first (and only?) partner
+          personPosition1 = partnerRelation.husband.node.text.position
+          personPosition2 = partnerRelation.wife.node.text.position
+        else      # many partners
+          if @person.sex == 'M'
+            personPosition1 = @person.partnerRelations[i-1].wife.node.text.position
+            personPosition2 = partnerRelation.wife.node.text.position
+          else if @person.sex == 'F'
+            personPosition1 = @person.partnerRelations[i-1].husband.node.text.position
+            personPosition2 = partnerRelation.husband.node.text.position
+
+        startX = (personPosition1.x + personPosition2.x) / 2
       else
         startX = 0
 
@@ -187,9 +200,11 @@ class PersonNode
   displayRelationTopVerticalLine: ->
     for partnerRelation in @person.partnerRelations
       children = partnerRelation.children
-      startX   = children[0].node.text.position.x
-      endX     = _.last(children).node.text.position.x
-      y        = partnerRelation.node.hLineY
+      if children.length
+        startX   = children[0].node.text.position.x
+        endX     = _.last(children).node.text.position.x
+        y        = partnerRelation.node.hLineY
 
-      partnerRelation.node.vLine.position.x = (startX + endX) / 2
-      partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4
+        partnerRelation.node.vLine.position.x = (startX + endX) / 2
+        partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4
+

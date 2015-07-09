@@ -59,8 +59,8 @@
     homerSelmaNode = new RelationNode(stage, homer.relationWith(selma));
     lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse));
     lisaNelsonNode = new RelationNode(stage, lisa.relationWith(nelson));
-    rootNode = margeNode;
-    rootNode.displayTree(700, 384);
+    rootNode = homerNode;
+    rootNode.displayTree(200, 384);
     animate = function() {
       requestAnimationFrame(animate);
       rootNode.update();
@@ -349,19 +349,33 @@
     };
 
     PersonNode.prototype.updateChildrenPositions = function() {
-      var child, children, endX, i, lineStartX, partnerRelation, size, startX, y, _i, _len, _ref, _results;
+      var child, children, endX, i, lineStartX, partnerRelation, personPosition1, personPosition2, size, startX, y, _i, _len, _ref, _results;
       _ref = this.person.partnerRelations;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        partnerRelation = _ref[_i];
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        partnerRelation = _ref[i];
         startX = partnerRelation.node.hLineStartX;
         endX = partnerRelation.node.hLineEndX;
         y = this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin;
         children = partnerRelation.children;
         lineStartX = this.person.sex === 'M' ? startX : endX;
-        if (children.length) {
+        if (children.length > 1) {
           size = children[0].node.partnersWidth();
           startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2 + size;
+        } else if (children.length === 1) {
+          if (i === 0) {
+            personPosition1 = partnerRelation.husband.node.text.position;
+            personPosition2 = partnerRelation.wife.node.text.position;
+          } else {
+            if (this.person.sex === 'M') {
+              personPosition1 = this.person.partnerRelations[i - 1].wife.node.text.position;
+              personPosition2 = partnerRelation.wife.node.text.position;
+            } else if (this.person.sex === 'F') {
+              personPosition1 = this.person.partnerRelations[i - 1].husband.node.text.position;
+              personPosition2 = partnerRelation.husband.node.text.position;
+            }
+          }
+          startX = (personPosition1.x + personPosition2.x) / 2;
         } else {
           startX = 0;
         }
@@ -411,11 +425,15 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         partnerRelation = _ref[_i];
         children = partnerRelation.children;
-        startX = children[0].node.text.position.x;
-        endX = _.last(children).node.text.position.x;
-        y = partnerRelation.node.hLineY;
-        partnerRelation.node.vLine.position.x = (startX + endX) / 2;
-        _results.push(partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4);
+        if (children.length) {
+          startX = children[0].node.text.position.x;
+          endX = _.last(children).node.text.position.x;
+          y = partnerRelation.node.hLineY;
+          partnerRelation.node.vLine.position.x = (startX + endX) / 2;
+          _results.push(partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4);
+        } else {
+          _results.push(void 0);
+        }
       }
       return _results;
     };

@@ -39,8 +39,8 @@ $ ->
   lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse))
   lisaNelsonNode   = new RelationNode(stage, lisa.relationWith(nelson))
 
-  rootNode = margeNode
-  rootNode.displayTree(700, 384)
+  rootNode = homerNode
+  rootNode.displayTree(200, 384)
 
   animate = ->
     requestAnimationFrame(animate)
