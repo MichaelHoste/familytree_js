@@ -3,7 +3,6 @@ class RelationNode
   constructor: (stage, relation) ->
     @stage    = stage
     @relation = relation
-    @dirty    = true
 
     @relation.node = this
 
@@ -12,6 +11,10 @@ class RelationNode
     @initializeChildrenHLine()
 
   initializeHLine: ->
+    @hLineStartX = 0
+    @hLineEndX   = 0
+    @hLineY      = 0
+
     @hLine = new PIXI.Graphics()
     @stage.addChild(@hLine)
 
@@ -55,11 +58,16 @@ class RelationNode
 
     size
 
-  drawHLine: (from, to) ->
+  setHLine: (startX, endX, y) ->
+    @hLineStartX = startX
+    @hLineEndX   = endX
+    @hLineY      = y
+
+  drawHLine: ->
     @hLine.clear()
     @hLine.lineStyle(Constants.lineWidth, 0x333333, 1)
-    @hLine.moveTo(from.x, from.y)
-    @hLine.lineTo(to.x, to.y)
+    @hLine.moveTo(@hLineStartX, @hLineY)
+    @hLine.lineTo(@hLineEndX,   @hLineY)
     false
 
   drawChildrenHLine: (from, to) ->

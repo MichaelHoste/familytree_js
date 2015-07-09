@@ -75,13 +75,16 @@ class PersonNode
     @updatePosition()
 
     if @dirtyRoot
-      @updatePartnerPositions()
-      @updateRelationPositions()
-      #@updateRelationChildren()
+      @display()
 
-      if @dirtyIterator == 10
-        @dirtyRoot = false
-      @dirtyIterator++
+      #if @dirtyIterator == 10
+      #  @dirtyRoot = false
+      #@dirtyIterator++
+
+  display: ->
+    @updatePartnerPositions()
+    @drawRelationLines()
+    @updateChildrenPositions()
 
   updatePosition: ->
     if @dirtyPosition
@@ -113,38 +116,46 @@ class PersonNode
       partnerNode.setPosition(@text.position.x + distance, @text.position.y)
       partnerNode.update()
 
-  updateRelationPositions: ->
-    startY = endY = @graphics.position.y + Constants.height / 2
+  drawRelationLines: ->
+    # y position of line
+    y = @graphics.position.y + Constants.height / 2
 
+    # x position to start the line
     if @person.sex == 'M'
-      distance = @text.position.x + @width() / 2 # right of the first box
+      position = @text.position.x + @width() / 2 # right of the first box
     else if @person.sex == 'F'
-      distance = @text.position.x - @width() / 2 # left of the first box
+      position = @text.position.x - @width() / 2 # left of the first box
 
-    for partnerRelation, i in @person.partnerRelations
+    previousLineWidth = 0
+    previousNodeWidth = 0
+
+    for partnerRelation in @person.partnerRelations
       lineWidth = partnerRelation.node.lineWidth()
 
       if @person.sex == 'M'
-        distance          = distance + previousLineWidth + previousNodeWidth if i != 0
-        startX            = distance - Constants.lineWidth / 2
-        endX              = distance + lineWidth
+        position          = position + previousLineWidth + previousNodeWidth
+        startX            = position - Constants.lineWidth / 2
+        endX              = position + lineWidth
         previousNodeWidth = partnerRelation.wife.node.width()
       else if @person.sex == 'F'
-        distance          = distance - previousLineWidth - previousNodeWidth if i != 0
-        startX            = distance + Constants.lineWidth / 2
-        endX              = distance - lineWidth
+        position          = position - previousLineWidth - previousNodeWidth
+        startX            = position + Constants.lineWidth / 2
+        endX              = position - lineWidth
         previousNodeWidth = partnerRelation.husband.node.width()
 
       previousLineWidth = lineWidth
 
       # Small horizontal line
-      partnerRelation.node.drawHLine({ x: startX, y: startY }, { x: endX, y: endY })
+      partnerRelation.node.setHLine(startX, endX, y)
+      partnerRelation.node.drawHLine()
 
+  updateChildrenPositions: ->
+    for partnerRelation in @person.partnerRelations
       # Vertical line in the middle of relation
       if partnerRelation.children.length > 0
-        middleX                               = (startX + endX) / 2
-        partnerRelation.node.vLine.position.x = middleX
-        partnerRelation.node.vLine.position.y = startY + Constants.verticalMargin / 4
+        startX  = partnerRelation.node.hLineStartX
+        endX    = partnerRelation.node.hLineEndX
+        middleX = (startX + endX) / 2
 
         @updateRelationChildrenPositions(
           partnerRelation,
@@ -164,8 +175,7 @@ class PersonNode
 
     for child, i in partnerRelation.children
       child.node.setPosition(startX, y)
-      child.node.updatePartnerPositions()
-      child.node.updateRelationPositions()
+      child.node.display()
 
       startX += Constants.margin + child.node.width()
       startX += children[i+1].node.partnersWidth() if i+1 < children.length
@@ -179,4 +189,9 @@ class PersonNode
 
       partnerRelation.node.drawChildrenHLine({ x: startX, y: startY }, { x: endX, y: endY })
 
-
+    # display vertical line that comes up from the horizontal line
+    startX = children[0].node.text.position.x
+    endX   = _.last(children).node.text.position.x
+    y      = partnerRelation.node.hLineY
+    partnerRelation.node.vLine.position.x = (startX + endX) / 2
+    partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4

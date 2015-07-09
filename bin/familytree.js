@@ -268,13 +268,14 @@
     PersonNode.prototype.update = function() {
       this.updatePosition();
       if (this.dirtyRoot) {
-        this.updatePartnerPositions();
-        this.updateRelationPositions();
-        if (this.dirtyIterator === 10) {
-          this.dirtyRoot = false;
-        }
-        return this.dirtyIterator++;
+        return this.display();
       }
+    };
+
+    PersonNode.prototype.display = function() {
+      this.updatePartnerPositions();
+      this.drawRelationLines();
+      return this.updateChildrenPositions();
     };
 
     PersonNode.prototype.updatePosition = function() {
@@ -312,46 +313,49 @@
       return _results;
     };
 
-    PersonNode.prototype.updateRelationPositions = function() {
-      var distance, endX, endY, i, lineWidth, middleX, partnerRelation, previousLineWidth, previousNodeWidth, startX, startY, _i, _len, _ref, _results;
-      startY = endY = this.graphics.position.y + Constants.height / 2;
+    PersonNode.prototype.drawRelationLines = function() {
+      var endX, lineWidth, partnerRelation, position, previousLineWidth, previousNodeWidth, startX, y, _i, _len, _ref, _results;
+      y = this.graphics.position.y + Constants.height / 2;
       if (this.person.sex === 'M') {
-        distance = this.text.position.x + this.width() / 2;
+        position = this.text.position.x + this.width() / 2;
       } else if (this.person.sex === 'F') {
-        distance = this.text.position.x - this.width() / 2;
+        position = this.text.position.x - this.width() / 2;
       }
+      previousLineWidth = 0;
+      previousNodeWidth = 0;
       _ref = this.person.partnerRelations;
       _results = [];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        partnerRelation = _ref[i];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partnerRelation = _ref[_i];
         lineWidth = partnerRelation.node.lineWidth();
         if (this.person.sex === 'M') {
-          if (i !== 0) {
-            distance = distance + previousLineWidth + previousNodeWidth;
-          }
-          startX = distance - Constants.lineWidth / 2;
-          endX = distance + lineWidth;
+          position = position + previousLineWidth + previousNodeWidth;
+          startX = position - Constants.lineWidth / 2;
+          endX = position + lineWidth;
           previousNodeWidth = partnerRelation.wife.node.width();
         } else if (this.person.sex === 'F') {
-          if (i !== 0) {
-            distance = distance - previousLineWidth - previousNodeWidth;
-          }
-          startX = distance + Constants.lineWidth / 2;
-          endX = distance - lineWidth;
+          position = position - previousLineWidth - previousNodeWidth;
+          startX = position + Constants.lineWidth / 2;
+          endX = position - lineWidth;
           previousNodeWidth = partnerRelation.husband.node.width();
         }
         previousLineWidth = lineWidth;
-        partnerRelation.node.drawHLine({
-          x: startX,
-          y: startY
-        }, {
-          x: endX,
-          y: endY
-        });
+        partnerRelation.node.setHLine(startX, endX, y);
+        _results.push(partnerRelation.node.drawHLine());
+      }
+      return _results;
+    };
+
+    PersonNode.prototype.updateChildrenPositions = function() {
+      var endX, middleX, partnerRelation, startX, _i, _len, _ref, _results;
+      _ref = this.person.partnerRelations;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partnerRelation = _ref[_i];
         if (partnerRelation.children.length > 0) {
+          startX = partnerRelation.node.hLineStartX;
+          endX = partnerRelation.node.hLineEndX;
           middleX = (startX + endX) / 2;
-          partnerRelation.node.vLine.position.x = middleX;
-          partnerRelation.node.vLine.position.y = startY + Constants.verticalMargin / 4;
           _results.push(this.updateRelationChildrenPositions(partnerRelation, this.person.sex === 'M' ? startX : endX, this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin, middleX));
         } else {
           _results.push(void 0);
@@ -375,8 +379,7 @@
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         child = _ref[i];
         child.node.setPosition(startX, y);
-        child.node.updatePartnerPositions();
-        child.node.updateRelationPositions();
+        child.node.display();
         startX += Constants.margin + child.node.width();
         if (i + 1 < children.length) {
           startX += children[i + 1].node.partnersWidth();
@@ -387,7 +390,7 @@
         startX = children[0].node.text.position.x;
         endX = _.last(children).node.text.position.x;
         startY = endY = y + Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2;
-        return partnerRelation.node.drawChildrenHLine({
+        partnerRelation.node.drawChildrenHLine({
           x: startX,
           y: startY
         }, {
@@ -395,6 +398,11 @@
           y: endY
         });
       }
+      startX = children[0].node.text.position.x;
+      endX = _.last(children).node.text.position.x;
+      y = partnerRelation.node.hLineY;
+      partnerRelation.node.vLine.position.x = (startX + endX) / 2;
+      return partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4;
     };
 
     return PersonNode;
@@ -424,7 +432,6 @@
     function RelationNode(stage, relation) {
       this.stage = stage;
       this.relation = relation;
-      this.dirty = true;
       this.relation.node = this;
       this.initializeHLine();
       this.initializeVLine();
@@ -432,6 +439,9 @@
     }
 
     RelationNode.prototype.initializeHLine = function() {
+      this.hLineStartX = 0;
+      this.hLineEndX = 0;
+      this.hLineY = 0;
       this.hLine = new PIXI.Graphics();
       return this.stage.addChild(this.hLine);
     };
@@ -489,11 +499,17 @@
       return size;
     };
 
-    RelationNode.prototype.drawHLine = function(from, to) {
+    RelationNode.prototype.setHLine = function(startX, endX, y) {
+      this.hLineStartX = startX;
+      this.hLineEndX = endX;
+      return this.hLineY = y;
+    };
+
+    RelationNode.prototype.drawHLine = function() {
       this.hLine.clear();
       this.hLine.lineStyle(Constants.lineWidth, 0x333333, 1);
-      this.hLine.moveTo(from.x, from.y);
-      this.hLine.lineTo(to.x, to.y);
+      this.hLine.moveTo(this.hLineStartX, this.hLineY);
+      this.hLine.lineTo(this.hLineEndX, this.hLineY);
       return false;
     };
 
