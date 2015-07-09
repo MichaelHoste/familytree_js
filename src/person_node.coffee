@@ -151,47 +151,39 @@ class PersonNode
 
   updateChildrenPositions: ->
     for partnerRelation in @person.partnerRelations
-      # Vertical line in the middle of relation
-      if partnerRelation.children.length > 0
-        startX  = partnerRelation.node.hLineStartX
-        endX    = partnerRelation.node.hLineEndX
-        middleX = (startX + endX) / 2
+      startX  = partnerRelation.node.hLineStartX
+      endX    = partnerRelation.node.hLineEndX
+      y       = @text.position.y + @graphics.height / 2 + Constants.verticalMargin
 
-        @updateRelationChildrenPositions(
-          partnerRelation,
-          if @person.sex == 'M' then startX else endX,
-          @text.position.y + @graphics.height / 2 + Constants.verticalMargin,
-          middleX
-        )
+      children = partnerRelation.children
+      husband  = partnerRelation.husband
 
-  updateRelationChildrenPositions: (partnerRelation, lineStartX, y, middleX) ->
-    children = partnerRelation.children
-    husband  = partnerRelation.husband
+      lineStartX = if @person.sex == 'M' then startX else endX
 
-    size = 0
-    size = children[0].node.partnersWidth() if children.length
+      if children.length
+        size   = children[0].node.partnersWidth()
+        startX = lineStartX - husband.node.width() + children[0].node.width() / 2 + size
+      else
+        startX = 0
 
-    startX   = lineStartX - husband.node.width() + children[0].node.width() / 2 + size if children.length
+      for child, i in partnerRelation.children
+        child.node.setPosition(startX, y)
+        child.node.display()
 
-    for child, i in partnerRelation.children
-      child.node.setPosition(startX, y)
-      child.node.display()
+        startX += Constants.margin + child.node.width() + Constants.lineWidth
+        startX += children[i+1].node.partnersWidth() if i+1 < children.length
+        child.node.update()
 
-      startX += Constants.margin + child.node.width()
-      startX += children[i+1].node.partnersWidth() if i+1 < children.length
-      child.node.update()
+      # display horizontal line between all children
+      if children.length > 1
+        partnerRelation.node.childrenHLineStartX = children[0].node.text.position.x
+        partnerRelation.node.childrenHLineEndX   = _.last(children).node.text.position.x
+        partnerRelation.node.childrenHLineY      = y + Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2
+        partnerRelation.node.drawChildrenHLine()
 
-    # display horizontal line between all children
-    if children.length > 1
+      # display vertical line that comes up from the horizontal line
       startX = children[0].node.text.position.x
       endX   = _.last(children).node.text.position.x
-      startY = endY = y + Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2
-
-      partnerRelation.node.drawChildrenHLine({ x: startX, y: startY }, { x: endX, y: endY })
-
-    # display vertical line that comes up from the horizontal line
-    startX = children[0].node.text.position.x
-    endX   = _.last(children).node.text.position.x
-    y      = partnerRelation.node.hLineY
-    partnerRelation.node.vLine.position.x = (startX + endX) / 2
-    partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4
+      y      = partnerRelation.node.hLineY
+      partnerRelation.node.vLine.position.x = (startX + endX) / 2
+      partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4

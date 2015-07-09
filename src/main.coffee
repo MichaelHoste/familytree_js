@@ -10,8 +10,8 @@ $ ->
 
   homer    = new Person('Homer', 'M')
   marge    = homer.addPartner('Marge Bouvier')
-  lisa     = homer.relationWith(marge).addChild('Lisa',   'F')
   bart     = homer.relationWith(marge).addChild('Bart',   'M')
+  lisa     = homer.relationWith(marge).addChild('Lisa',   'F')
   maggie   = homer.relationWith(marge).addChild('Maggie', 'F')
   selma    = homer.addPartner('Selma Bouvier')
   milhouse = lisa.addPartner('Milhouse')
