@@ -275,7 +275,9 @@
     PersonNode.prototype.display = function() {
       this.updatePartnerPositions();
       this.drawRelationLines();
-      return this.updateChildrenPositions();
+      this.updateChildrenPositions();
+      this.displayRelationTopVerticalLine();
+      return this.displayHorizontalLineBetweenChildren();
     };
 
     PersonNode.prototype.updatePosition = function() {
@@ -347,7 +349,7 @@
     };
 
     PersonNode.prototype.updateChildrenPositions = function() {
-      var child, children, endX, husband, i, lineStartX, partnerRelation, size, startX, y, _i, _j, _len, _len1, _ref, _ref1, _results;
+      var child, children, endX, i, lineStartX, partnerRelation, size, startX, y, _i, _len, _ref, _results;
       _ref = this.person.partnerRelations;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -356,31 +358,59 @@
         endX = partnerRelation.node.hLineEndX;
         y = this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin;
         children = partnerRelation.children;
-        husband = partnerRelation.husband;
         lineStartX = this.person.sex === 'M' ? startX : endX;
         if (children.length) {
           size = children[0].node.partnersWidth();
-          startX = lineStartX - husband.node.width() + children[0].node.width() / 2 + size;
+          startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2 + size;
         } else {
           startX = 0;
         }
-        _ref1 = partnerRelation.children;
-        for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
-          child = _ref1[i];
-          child.node.setPosition(startX, y);
-          child.node.display();
-          startX += Constants.margin + child.node.width();
-          if (i + 1 < children.length) {
-            startX += children[i + 1].node.partnersWidth();
+        _results.push((function() {
+          var _j, _len1, _ref1, _results1;
+          _ref1 = partnerRelation.children;
+          _results1 = [];
+          for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
+            child = _ref1[i];
+            child.node.setPosition(startX, y);
+            child.node.display();
+            startX += Constants.margin + child.node.width();
+            if (i + 1 < children.length) {
+              startX += children[i + 1].node.partnersWidth();
+            }
+            _results1.push(child.node.update());
           }
-          child.node.update();
-        }
+          return _results1;
+        })());
+      }
+      return _results;
+    };
+
+    PersonNode.prototype.displayHorizontalLineBetweenChildren = function() {
+      var children, partnerRelation, _i, _len, _ref, _results;
+      _ref = this.person.partnerRelations;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partnerRelation = _ref[_i];
+        children = partnerRelation.children;
         if (children.length > 1) {
           partnerRelation.node.childrenHLineStartX = children[0].node.text.position.x;
           partnerRelation.node.childrenHLineEndX = _.last(children).node.text.position.x;
-          partnerRelation.node.childrenHLineY = y + Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2;
-          partnerRelation.node.drawChildrenHLine();
+          partnerRelation.node.childrenHLineY = this.text.position.y + Constants.baseLine + Constants.verticalMargin / 2 + Constants.lineWidth;
+          _results.push(partnerRelation.node.drawChildrenHLine());
+        } else {
+          _results.push(void 0);
         }
+      }
+      return _results;
+    };
+
+    PersonNode.prototype.displayRelationTopVerticalLine = function() {
+      var children, endX, partnerRelation, startX, y, _i, _len, _ref, _results;
+      _ref = this.person.partnerRelations;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        partnerRelation = _ref[_i];
+        children = partnerRelation.children;
         startX = children[0].node.text.position.x;
         endX = _.last(children).node.text.position.x;
         y = partnerRelation.node.hLineY;
