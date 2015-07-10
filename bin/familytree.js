@@ -24,7 +24,7 @@
   })();
 
   $(function() {
-    var animate, bart, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, kido, kido2, kido2Node, kido3, kido3Node, kidoNode, lisa, lisaMilhouseNode, lisaNelsonNode, lisaNode, maggie, maggieNode, marge, margeNode, milhouse, milhouseNode, nelson, nelsonJunior, nelsonJuniorNode, nelsonNode, renderer, rootNode, selma, selmaNode, stage;
+    var animate, bart, bartJessicaNode, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, jessica, jessicaNode, kido, kido2, kido2Node, kido3, kido3Node, kidoNode, lisa, lisaMilhouseNode, lisaNelsonNode, lisaNode, love, loveNode, maggie, maggieNode, marge, margeNode, milhouse, milhouseNode, nelson, nelsonJunior, nelsonJuniorNode, nelsonNode, renderer, rootNode, selma, selmaNode, stage;
     renderer = new PIXI.autoDetectRenderer(1024, 768, {
       antialias: true,
       backgroundColor: 0xFFFFFF
@@ -36,18 +36,21 @@
     bart = homer.relationWith(marge).addChild('Bart', 'M');
     lisa = homer.relationWith(marge).addChild('Lisa', 'F');
     maggie = homer.relationWith(marge).addChild('Maggie', 'F');
+    jessica = bart.addPartner('Jessica', 'F');
     selma = homer.addPartner('Selma Bouvier');
     milhouse = lisa.addPartner('Milhouse');
     nelson = lisa.addPartner('Nelson');
-    kido = lisa.relationWith(milhouse).addChild('Kido', 'F');
+    kido = lisa.relationWith(milhouse).addChild('Kido1', 'F');
     kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M');
     kido3 = lisa.relationWith(milhouse).addChild('Kido2', 'M');
     nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M');
+    love = bart.relationWith(jessica).addChild('love', 'F');
     homerNode = new PersonNode(stage, homer);
     margeNode = new PersonNode(stage, marge);
     selmaNode = new PersonNode(stage, selma);
     lisaNode = new PersonNode(stage, lisa);
     maggieNode = new PersonNode(stage, maggie);
+    jessicaNode = new PersonNode(stage, jessica);
     bartNode = new PersonNode(stage, bart);
     milhouseNode = new PersonNode(stage, milhouse);
     nelsonNode = new PersonNode(stage, nelson);
@@ -55,10 +58,12 @@
     kido2Node = new PersonNode(stage, kido2);
     kido3Node = new PersonNode(stage, kido3);
     nelsonJuniorNode = new PersonNode(stage, nelsonJunior);
+    loveNode = new PersonNode(stage, love);
     homerMargeNode = new RelationNode(stage, homer.relationWith(marge));
     homerSelmaNode = new RelationNode(stage, homer.relationWith(selma));
     lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse));
     lisaNelsonNode = new RelationNode(stage, lisa.relationWith(nelson));
+    bartJessicaNode = new RelationNode(stage, bart.relationWith(jessica));
     rootNode = lisaNode;
     rootNode.displayTree(600, 384);
     animate = function() {
@@ -269,7 +274,7 @@
       this.updatePosition();
       if (this.dirtyRoot) {
         this.display();
-        return this.updateParentPositions();
+        return this.updateTopPersons();
       }
     };
 
@@ -439,7 +444,7 @@
       return _results;
     };
 
-    PersonNode.prototype.updateParentPositions = function() {
+    PersonNode.prototype.updateTopPersons = function() {
       var y;
       if (this.person.parentRelation) {
         y = this.text.position.y - this.graphics.height / 2 - Constants.verticalMargin;
@@ -515,21 +520,34 @@
     };
 
     PersonNode.prototype.updateParentsChildrenPositions = function() {
-      var child, i, offset, parentRelationNode, y, _i, _len, _ref, _results;
+      var child, children, children_without_himself, i, offset, parentRelationNode, y, _i, _len, _results;
       y = this.text.position.y;
       parentRelationNode = this.person.parentRelation.node;
-      offset = 0;
-      _ref = this.person.parentRelation.children;
+      children = this.person.parentRelation.children;
+      children_without_himself = _.without(children, this.person);
+      offset = this.width() / 2;
+      if (children_without_himself.length > 0) {
+        offset += children_without_himself[0].node.width() / 2 + Constants.margin;
+      }
       _results = [];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        child = _ref[i];
-        if (child !== this.person) {
-          offset += child.node.partnersWidth() + child.node.width() + Constants.margin;
-          child.node.setPosition(this.text.position.x + offset, y);
-          _results.push(child.node.update());
-        } else {
-          _results.push(void 0);
+      for (i = _i = 0, _len = children_without_himself.length; _i < _len; i = ++_i) {
+        child = children_without_himself[i];
+        if (this.person.sex === 'F') {
+          if (child.sex === 'M') {
+            child.node.setPosition(this.text.position.x + offset, y);
+          } else if (child.sex === 'F') {
+            child.node.setPosition(this.text.position.x + child.node.partnersWidth() + offset, y);
+          }
+        } else if (this.person.sex === 'M') {
+          if (child.sex === 'F') {
+            child.node.setPosition(this.text.position.x - offset, y);
+          } else if (child.sex === 'M') {
+            child.node.setPosition(this.text.position.x - child.node.partnersWidth() - offset, y);
+          }
         }
+        child.node.display();
+        child.node.update();
+        _results.push(offset += child.node.partnersWidth() + child.node.width() + Constants.margin);
       }
       return _results;
     };

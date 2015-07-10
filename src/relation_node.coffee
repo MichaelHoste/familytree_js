@@ -43,6 +43,10 @@ class RelationNode
     size =  @relation.husband.node.width()
     size += @relation.wife.node.width()
     size += Constants.margin
+
+    # TODO : DEBUG
+    #size += Constants.margin * 2 if @relation.wife.partnerRelations.length > 1
+
     size
 
   childrenWidth: ->

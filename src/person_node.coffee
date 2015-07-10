@@ -76,7 +76,7 @@ class PersonNode
 
     if @dirtyRoot
       @display()
-      @updateParentPositions()
+      @updateTopPersons()
 
       #if @dirtyIterator == 10
       #  @dirtyRoot = false
@@ -209,7 +209,7 @@ class PersonNode
         partnerRelation.node.vLine.position.x = (startX + endX) / 2
         partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4
 
-  updateParentPositions: ->
+  updateTopPersons: ->
     if @person.parentRelation
       y  = @text.position.y - @graphics.height / 2 - Constants.verticalMargin
 
@@ -275,14 +275,28 @@ class PersonNode
 
   updateParentsChildrenPositions: ->
     y = @text.position.y
-    parentRelationNode = @person.parentRelation.node
+    parentRelationNode      = @person.parentRelation.node
+    children                = @person.parentRelation.children
+    children_without_himself = _.without(children, @person)
 
-    offset = 0
-    for child, i in @person.parentRelation.children
-      if child != @person
-        offset += child.node.partnersWidth() + child.node.width() + Constants.margin
-        child.node.setPosition(@text.position.x + offset, y)
-        child.node.update()
+    offset =  @width() / 2
+    offset += children_without_himself[0].node.width() / 2 + Constants.margin if children_without_himself.length > 0
+
+    for child, i in children_without_himself
+      if @person.sex == 'F'
+        if child.sex == 'M'
+          child.node.setPosition(@text.position.x + offset, y)
+        else if child.sex == 'F'
+          child.node.setPosition(@text.position.x + child.node.partnersWidth() + offset, y)
+      else if @person.sex == 'M'
+        if child.sex == 'F'
+          child.node.setPosition(@text.position.x - offset, y)
+        else if child.sex == 'M'
+          child.node.setPosition(@text.position.x - child.node.partnersWidth() - offset, y)
+
+      child.node.display()
+      child.node.update()
+      offset += child.node.partnersWidth() + child.node.width() + Constants.margin
 
   drawParentsChildrenHLine: (y) ->
     parentRelationNode = @person.parentRelation.node
