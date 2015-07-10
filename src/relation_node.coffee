@@ -74,7 +74,7 @@ class RelationNode
     @hLine.lineTo(@hLineEndX,   @hLineY)
     false
 
-  drawChildrenHLine: (from, to) ->
+  drawChildrenHLine: ->
     @childrenHLine.clear()
     @childrenHLine.lineStyle(Constants.lineWidth, 0x333333, 1)
     @childrenHLine.moveTo(@childrenHLineStartX, @childrenHLineY)

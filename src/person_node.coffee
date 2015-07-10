@@ -215,6 +215,9 @@ class PersonNode
 
       @updateParent1Position(y)
       @updateParent2Position(y)
+      @drawParentsHLine(y)
+      @updateParentsVLinePosition()
+      @drawParentsChildrenHLine()
 
   # parent that is on the "partners" side
   updateParent1Position: (y) ->
@@ -249,4 +252,25 @@ class PersonNode
       wife.node.setPosition(@text.position.x + offset, y)
       wife.node.update()
 
-    #prendre tous les enfants, sauf current et additionner tailles
+  drawParentsHLine: (y) ->
+    parentRelationNode = @person.parentRelation.node
+    husband            = @person.parentRelation.husband
+    wife               = @person.parentRelation.wife
+
+    parentRelationNode.hLineStartX = husband.node.text.x + husband.node.width() / 2
+    parentRelationNode.hLineEndX   = wife.node.text.x    - wife.node.width() / 2
+    parentRelationNode.hLineY      = y + Constants.baseLine
+    parentRelationNode.drawHLine()
+
+  updateParentsVLinePosition: ->
+    parentRelationNode = @person.parentRelation.node
+    if @person.sex == 'M'
+      parentLimit = @person.father()
+    else if @person.sex == 'F'
+      parentLimit = @person.mother()
+
+    parentRelationNode.vLine.position.x = @text.position.x / 2 + parentLimit.node.text.position.x / 2
+    parentRelationNode.vLine.position.y = @graphics.position.y - Constants.height / 2 - Constants.verticalMargin / 2 - Constants.lineWidth * 2
+
+  drawParentsChildrenHLine: ->
+    ;

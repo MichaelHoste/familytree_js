@@ -34,7 +34,7 @@
     homer = new Person('Homer', 'M');
     marge = homer.addPartner('Marge Bouvier');
     bart = homer.relationWith(marge).addChild('Bart', 'M');
-    lisa = homer.relationWith(marge).addChild('Lisa', 'M');
+    lisa = homer.relationWith(marge).addChild('Lisa', 'F');
     maggie = homer.relationWith(marge).addChild('Maggie', 'F');
     selma = homer.addPartner('Selma Bouvier');
     milhouse = lisa.addPartner('Milhouse');
@@ -444,7 +444,10 @@
       if (this.person.parentRelation) {
         y = this.text.position.y - this.graphics.height / 2 - Constants.verticalMargin;
         this.updateParent1Position(y);
-        return this.updateParent2Position(y);
+        this.updateParent2Position(y);
+        this.drawParentsHLine(y);
+        this.updateParentsVLinePosition();
+        return this.drawParentsChildrenHLine();
       }
     };
 
@@ -486,6 +489,31 @@
         return wife.node.update();
       }
     };
+
+    PersonNode.prototype.drawParentsHLine = function(y) {
+      var husband, parentRelationNode, wife;
+      parentRelationNode = this.person.parentRelation.node;
+      husband = this.person.parentRelation.husband;
+      wife = this.person.parentRelation.wife;
+      parentRelationNode.hLineStartX = husband.node.text.x + husband.node.width() / 2;
+      parentRelationNode.hLineEndX = wife.node.text.x - wife.node.width() / 2;
+      parentRelationNode.hLineY = y + Constants.baseLine;
+      return parentRelationNode.drawHLine();
+    };
+
+    PersonNode.prototype.updateParentsVLinePosition = function() {
+      var parentLimit, parentRelationNode;
+      parentRelationNode = this.person.parentRelation.node;
+      if (this.person.sex === 'M') {
+        parentLimit = this.person.father();
+      } else if (this.person.sex === 'F') {
+        parentLimit = this.person.mother();
+      }
+      parentRelationNode.vLine.position.x = this.text.position.x / 2 + parentLimit.node.text.position.x / 2;
+      return parentRelationNode.vLine.position.y = this.graphics.position.y - Constants.height / 2 - Constants.verticalMargin / 2 - Constants.lineWidth * 2;
+    };
+
+    PersonNode.prototype.drawParentsChildrenHLine = function() {};
 
     return PersonNode;
 
@@ -598,7 +626,7 @@
       return false;
     };
 
-    RelationNode.prototype.drawChildrenHLine = function(from, to) {
+    RelationNode.prototype.drawChildrenHLine = function() {
       this.childrenHLine.clear();
       this.childrenHLine.lineStyle(Constants.lineWidth, 0x333333, 1);
       this.childrenHLine.moveTo(this.childrenHLineStartX, this.childrenHLineY);
