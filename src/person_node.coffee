@@ -57,6 +57,12 @@ class PersonNode
   width: ->
     @graphics.width
 
+  partnersWidth: ->
+    size = 0
+    for partnerRelation in @person.partnerRelations
+      size += partnerRelation.node.globalWidth() - @width()
+    size
+
   position: ->
     @text.position
 
@@ -65,17 +71,12 @@ class PersonNode
     @text.position.y = y
     @dirtyPosition   = true
 
-  partnersWidth: ->
-    size = 0
-    for partnerRelation in @person.partnerRelations
-      size += partnerRelation.node.globalWidth() - @width()
-    size
-
   update: ->
     @updatePosition()
 
     if @dirtyRoot
       @display()
+      @updateParentPositions()
 
       #if @dirtyIterator == 10
       #  @dirtyRoot = false
@@ -85,8 +86,8 @@ class PersonNode
     @updatePartnerPositions()
     @drawRelationLines()
     @updateChildrenPositions()
-    @displayRelationTopVerticalLine()
-    @displayHorizontalLineBetweenChildren()
+    @drawRelationTopVerticalLine()
+    @drawHorizontalLineBetweenChildren()
 
   updatePosition: ->
     if @dirtyPosition
@@ -187,7 +188,7 @@ class PersonNode
         startX += children[i+1].node.partnersWidth() if i+1 < children.length
         child.node.update()
 
-  displayHorizontalLineBetweenChildren: ->
+  drawHorizontalLineBetweenChildren: ->
     for partnerRelation in @person.partnerRelations
       children = partnerRelation.children
 
@@ -197,7 +198,7 @@ class PersonNode
         partnerRelation.node.childrenHLineY      = @text.position.y + Constants.baseLine + Constants.verticalMargin / 2 + Constants.lineWidth
         partnerRelation.node.drawChildrenHLine()
 
-  displayRelationTopVerticalLine: ->
+  drawRelationTopVerticalLine: ->
     for partnerRelation in @person.partnerRelations
       children = partnerRelation.children
       if children.length
@@ -208,3 +209,44 @@ class PersonNode
         partnerRelation.node.vLine.position.x = (startX + endX) / 2
         partnerRelation.node.vLine.position.y = y + Constants.verticalMargin / 4
 
+  updateParentPositions: ->
+    if @person.parentRelation
+      y  = @text.position.y - @graphics.height / 2 - Constants.verticalMargin
+
+      @updateParent1Position(y)
+      @updateParent2Position(y)
+
+  # parent that is on the "partners" side
+  updateParent1Position: (y) ->
+    husband = @person.parentRelation.husband
+    wife    = @person.parentRelation.wife
+
+    if @person.sex == 'M'
+      offset = @partnersWidth() + @width() / 2 - wife.node.width() / 2
+      wife.node.setPosition(@text.position.x + offset, y)
+      wife.node.update()
+    else if @person.sex == 'F'
+      offset = @partnersWidth() + @width() / 2 - husband.node.width() / 2
+      husband.node.setPosition(@text.position.x - offset, y)
+      husband.node.update()
+
+  updateParent2Position: (y) ->
+    husband = @person.parentRelation.husband
+    wife    = @person.parentRelation.wife
+
+    offset = 0
+    for child, i in @person.parentRelation.children
+      if child != @person
+        child.node.update()
+        offset += child.node.partnersWidth() + child.node.width() + Constants.margin
+
+    if @person.sex == 'M'
+      offset = offset - @width() / 2 + wife.node.width() / 2
+      husband.node.setPosition(@text.position.x - offset, y)
+      husband.node.update()
+    else if @person.sex == 'F'
+      offset = offset + @width() / 2 - wife.node.width() / 2
+      wife.node.setPosition(@text.position.x + offset, y)
+      wife.node.update()
+
+    #prendre tous les enfants, sauf current et additionner tailles

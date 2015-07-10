@@ -34,7 +34,7 @@
     homer = new Person('Homer', 'M');
     marge = homer.addPartner('Marge Bouvier');
     bart = homer.relationWith(marge).addChild('Bart', 'M');
-    lisa = homer.relationWith(marge).addChild('Lisa', 'F');
+    lisa = homer.relationWith(marge).addChild('Lisa', 'M');
     maggie = homer.relationWith(marge).addChild('Maggie', 'F');
     selma = homer.addPartner('Selma Bouvier');
     milhouse = lisa.addPartner('Milhouse');
@@ -59,8 +59,8 @@
     homerSelmaNode = new RelationNode(stage, homer.relationWith(selma));
     lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse));
     lisaNelsonNode = new RelationNode(stage, lisa.relationWith(nelson));
-    rootNode = homerNode;
-    rootNode.displayTree(200, 384);
+    rootNode = lisaNode;
+    rootNode.displayTree(600, 384);
     animate = function() {
       requestAnimationFrame(animate);
       rootNode.update();
@@ -244,16 +244,6 @@
       return this.graphics.width;
     };
 
-    PersonNode.prototype.position = function() {
-      return this.text.position;
-    };
-
-    PersonNode.prototype.setPosition = function(x, y) {
-      this.text.position.x = x;
-      this.text.position.y = y;
-      return this.dirtyPosition = true;
-    };
-
     PersonNode.prototype.partnersWidth = function() {
       var partnerRelation, size, _i, _len, _ref;
       size = 0;
@@ -265,10 +255,21 @@
       return size;
     };
 
+    PersonNode.prototype.position = function() {
+      return this.text.position;
+    };
+
+    PersonNode.prototype.setPosition = function(x, y) {
+      this.text.position.x = x;
+      this.text.position.y = y;
+      return this.dirtyPosition = true;
+    };
+
     PersonNode.prototype.update = function() {
       this.updatePosition();
       if (this.dirtyRoot) {
-        return this.display();
+        this.display();
+        return this.updateParentPositions();
       }
     };
 
@@ -276,8 +277,8 @@
       this.updatePartnerPositions();
       this.drawRelationLines();
       this.updateChildrenPositions();
-      this.displayRelationTopVerticalLine();
-      return this.displayHorizontalLineBetweenChildren();
+      this.drawRelationTopVerticalLine();
+      return this.drawHorizontalLineBetweenChildren();
     };
 
     PersonNode.prototype.updatePosition = function() {
@@ -399,7 +400,7 @@
       return _results;
     };
 
-    PersonNode.prototype.displayHorizontalLineBetweenChildren = function() {
+    PersonNode.prototype.drawHorizontalLineBetweenChildren = function() {
       var children, partnerRelation, _i, _len, _ref, _results;
       _ref = this.person.partnerRelations;
       _results = [];
@@ -418,7 +419,7 @@
       return _results;
     };
 
-    PersonNode.prototype.displayRelationTopVerticalLine = function() {
+    PersonNode.prototype.drawRelationTopVerticalLine = function() {
       var children, endX, partnerRelation, startX, y, _i, _len, _ref, _results;
       _ref = this.person.partnerRelations;
       _results = [];
@@ -436,6 +437,54 @@
         }
       }
       return _results;
+    };
+
+    PersonNode.prototype.updateParentPositions = function() {
+      var y;
+      if (this.person.parentRelation) {
+        y = this.text.position.y - this.graphics.height / 2 - Constants.verticalMargin;
+        this.updateParent1Position(y);
+        return this.updateParent2Position(y);
+      }
+    };
+
+    PersonNode.prototype.updateParent1Position = function(y) {
+      var husband, offset, wife;
+      husband = this.person.parentRelation.husband;
+      wife = this.person.parentRelation.wife;
+      if (this.person.sex === 'M') {
+        offset = this.partnersWidth() + this.width() / 2 - wife.node.width() / 2;
+        wife.node.setPosition(this.text.position.x + offset, y);
+        return wife.node.update();
+      } else if (this.person.sex === 'F') {
+        offset = this.partnersWidth() + this.width() / 2 - husband.node.width() / 2;
+        husband.node.setPosition(this.text.position.x - offset, y);
+        return husband.node.update();
+      }
+    };
+
+    PersonNode.prototype.updateParent2Position = function(y) {
+      var child, husband, i, offset, wife, _i, _len, _ref;
+      husband = this.person.parentRelation.husband;
+      wife = this.person.parentRelation.wife;
+      offset = 0;
+      _ref = this.person.parentRelation.children;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        child = _ref[i];
+        if (child !== this.person) {
+          child.node.update();
+          offset += child.node.partnersWidth() + child.node.width() + Constants.margin;
+        }
+      }
+      if (this.person.sex === 'M') {
+        offset = offset - this.width() / 2 + wife.node.width() / 2;
+        husband.node.setPosition(this.text.position.x - offset, y);
+        return husband.node.update();
+      } else if (this.person.sex === 'F') {
+        offset = offset + this.width() / 2 - wife.node.width() / 2;
+        wife.node.setPosition(this.text.position.x + offset, y);
+        return wife.node.update();
+      }
     };
 
     return PersonNode;

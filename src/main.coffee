@@ -11,7 +11,7 @@ $ ->
   homer    = new Person('Homer', 'M')
   marge    = homer.addPartner('Marge Bouvier')
   bart     = homer.relationWith(marge).addChild('Bart',   'M')
-  lisa     = homer.relationWith(marge).addChild('Lisa',   'F')
+  lisa     = homer.relationWith(marge).addChild('Lisa',   'M')
   maggie   = homer.relationWith(marge).addChild('Maggie', 'F')
   selma    = homer.addPartner('Selma Bouvier')
   milhouse = lisa.addPartner('Milhouse')
@@ -20,6 +20,7 @@ $ ->
   kido2    = lisa.relationWith(milhouse).addChild('Kido2', 'M')
   kido3    = lisa.relationWith(milhouse).addChild('Kido2', 'M')
   nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M')
+  #nelsonBaby = lisa.relationWith(nelson).addChild('Nelson Baby', 'M')
 
   homerNode    = new PersonNode(stage, homer)
   margeNode    = new PersonNode(stage, marge)
@@ -33,14 +34,15 @@ $ ->
   kido2Node    = new PersonNode(stage, kido2)
   kido3Node    = new PersonNode(stage, kido3)
   nelsonJuniorNode    = new PersonNode(stage, nelsonJunior)
+  #nelsonBabyNode    = new PersonNode(stage, nelsonBaby)
 
   homerMargeNode   = new RelationNode(stage, homer.relationWith(marge))
   homerSelmaNode   = new RelationNode(stage, homer.relationWith(selma))
   lisaMilhouseNode = new RelationNode(stage, lisa.relationWith(milhouse))
   lisaNelsonNode   = new RelationNode(stage, lisa.relationWith(nelson))
 
-  rootNode = homerNode
-  rootNode.displayTree(200, 384)
+  rootNode = lisaNode
+  rootNode.displayTree(600, 384)
 
   animate = ->
     requestAnimationFrame(animate)
