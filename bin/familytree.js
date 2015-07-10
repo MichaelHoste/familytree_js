@@ -447,7 +447,7 @@
         this.updateParent2Position(y);
         this.drawParentsHLine(y);
         this.updateParentsVLinePosition();
-        return this.drawParentsChildrenHLine();
+        return this.drawParentsChildrenHLine(y);
       }
     };
 
@@ -510,10 +510,19 @@
         parentLimit = this.person.mother();
       }
       parentRelationNode.vLine.position.x = this.text.position.x / 2 + parentLimit.node.text.position.x / 2;
-      return parentRelationNode.vLine.position.y = this.graphics.position.y - Constants.height / 2 - Constants.verticalMargin / 2 - Constants.lineWidth * 2;
+      return parentRelationNode.vLine.position.y = this.graphics.position.y - Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2;
     };
 
-    PersonNode.prototype.drawParentsChildrenHLine = function() {};
+    PersonNode.prototype.drawParentsChildrenHLine = function(y) {
+      var husband, parentRelationNode, wife;
+      parentRelationNode = this.person.parentRelation.node;
+      husband = this.person.parentRelation.husband;
+      wife = this.person.parentRelation.wife;
+      parentRelationNode.childrenHLineStartX = this.text.position.x;
+      parentRelationNode.childrenHLineEndX = wife.node.text.x - wife.node.width() / 2;
+      parentRelationNode.childrenHLineY = y + Constants.baseLine + Constants.verticalMargin / 2;
+      return parentRelationNode.drawChildrenHLine();
+    };
 
     return PersonNode;
 
