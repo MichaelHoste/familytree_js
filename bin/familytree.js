@@ -447,6 +447,7 @@
         this.updateParent2Position(y);
         this.drawParentsHLine(y);
         this.updateParentsVLinePosition();
+        this.updateParentsChildrenPositions();
         return this.drawParentsChildrenHLine(y);
       }
     };
@@ -513,13 +514,33 @@
       return parentRelationNode.vLine.position.y = this.graphics.position.y - Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2;
     };
 
+    PersonNode.prototype.updateParentsChildrenPositions = function() {
+      var child, i, offset, parentRelationNode, y, _i, _len, _ref, _results;
+      y = this.text.position.y;
+      parentRelationNode = this.person.parentRelation.node;
+      offset = 0;
+      _ref = this.person.parentRelation.children;
+      _results = [];
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        child = _ref[i];
+        if (child !== this.person) {
+          offset += child.node.partnersWidth() + child.node.width() + Constants.margin;
+          child.node.setPosition(this.text.position.x + offset, y);
+          _results.push(child.node.update());
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
     PersonNode.prototype.drawParentsChildrenHLine = function(y) {
       var husband, parentRelationNode, wife;
       parentRelationNode = this.person.parentRelation.node;
       husband = this.person.parentRelation.husband;
       wife = this.person.parentRelation.wife;
       parentRelationNode.childrenHLineStartX = this.text.position.x;
-      parentRelationNode.childrenHLineEndX = wife.node.text.x - wife.node.width() / 2;
+      parentRelationNode.childrenHLineEndX = _.last(this.person.parentRelation.children).node.text.position.x;
       parentRelationNode.childrenHLineY = y + Constants.baseLine + Constants.verticalMargin / 2;
       return parentRelationNode.drawChildrenHLine();
     };
