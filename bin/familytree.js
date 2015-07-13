@@ -501,8 +501,8 @@
         startX = partnerRelation.node.hLineStartX;
         endX = partnerRelation.node.hLineEndX;
         y = this.text.position.y + this.graphics.height / 2 + Constants.verticalMargin;
-        children = partnerRelation.children;
         lineStartX = this.person.sex === 'M' ? startX : endX;
+        children = partnerRelation.children;
         if (children.length > 1) {
           startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2;
         } else if (children.length === 1) {
@@ -594,7 +594,11 @@
         this.drawParentsHLine(y);
         this.updateParentsVLinePosition();
         this.updateParentsChildrenPositions();
-        return this.drawParentsChildrenHLine(y);
+        this.drawParentsChildrenHLine(y);
+        if (this.person.parentRelation) {
+          this.person.father().node.updateTopPeople();
+          return this.person.mother().node.updateTopPeople();
+        }
       }
     };
 

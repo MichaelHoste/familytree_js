@@ -211,8 +211,8 @@ class PersonNode
       startX     = partnerRelation.node.hLineStartX
       endX       = partnerRelation.node.hLineEndX
       y          = @text.position.y + @graphics.height / 2 + Constants.verticalMargin
-      children   = partnerRelation.children
       lineStartX = if @person.sex == 'M' then startX else endX
+      children   = partnerRelation.children
 
       if children.length > 1
         #size   = children[i].node.partnersWidth()
@@ -275,6 +275,23 @@ class PersonNode
       @updateParentsVLinePosition()
       @updateParentsChildrenPositions()
       @drawParentsChildrenHLine(y)
+
+      if @person.parentRelation
+        @person.father().node.updateTopPeople()
+      #   @person.father().node.updatePartnerPositions()
+      #   @person.father().node.drawRelationLines()
+        @person.mother().node.updateTopPeople()
+      #   @person.mother().node.updatePartnerPositions()
+      #   @person.mother().node.drawRelationLines()
+      #
+      #   for partner in _.without(@person.mother().partners(), @person.father())
+      #     partner.node.updateChildrenPositions()
+      #     partner.node.drawRelationTopVerticalLine()
+      #     partner.node.drawHorizontalLineBetweenChildren()
+      #   for partner in _.without(@person.father().partners(), @person.mother())
+      #     partner.node.updateChildrenPositions()
+      #     partner.node.drawRelationTopVerticalLine()
+      #     partner.node.drawHorizontalLineBetweenChildren()
 
   # si c'est un mec,    on met ses partenaires à droite et ses frères et soeurs à gauche
   # Si c'est une fille, on met ses partenaires à gauche et ses frères et soeurs à droite
