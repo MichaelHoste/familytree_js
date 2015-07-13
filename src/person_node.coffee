@@ -355,11 +355,16 @@ class PersonNode
       offset += child.node.partnersWidth() + child.node.width() + Constants.margin
 
   drawParentsChildrenHLine: (y) ->
+    console.log @person.name
     parentRelationNode = @person.parentRelation.node
-    husband            = @person.parentRelation.husband
-    wife               = @person.parentRelation.wife
+    children           = @person.parentRelation.children
 
-    parentRelationNode.childrenHLineStartX = @text.position.x
-    parentRelationNode.childrenHLineEndX   = _.last(@person.parentRelation.children).node.text.position.x # debug once the childs have a position
+    parentRelationNode.childrenHLineStartX = _.min(children, (child) -> child.node.text.position.x).node.text.position.x
+    parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.text.position.x).node.text.position.x
     parentRelationNode.childrenHLineY      = y + Constants.baseLine + Constants.verticalMargin / 2
+
+    console.log parentRelationNode.childrenHLineStartX
+    console.log parentRelationNode.childrenHLineEndX
+    console.log "-------"
+
     parentRelationNode.drawChildrenHLine()

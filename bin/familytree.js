@@ -695,13 +695,20 @@
     };
 
     PersonNode.prototype.drawParentsChildrenHLine = function(y) {
-      var husband, parentRelationNode, wife;
+      var children, parentRelationNode;
+      console.log(this.person.name);
       parentRelationNode = this.person.parentRelation.node;
-      husband = this.person.parentRelation.husband;
-      wife = this.person.parentRelation.wife;
-      parentRelationNode.childrenHLineStartX = this.text.position.x;
-      parentRelationNode.childrenHLineEndX = _.last(this.person.parentRelation.children).node.text.position.x;
+      children = this.person.parentRelation.children;
+      parentRelationNode.childrenHLineStartX = _.min(children, function(child) {
+        return child.node.text.position.x;
+      }).node.text.position.x;
+      parentRelationNode.childrenHLineEndX = _.max(children, function(child) {
+        return child.node.text.position.x;
+      }).node.text.position.x;
       parentRelationNode.childrenHLineY = y + Constants.baseLine + Constants.verticalMargin / 2;
+      console.log(parentRelationNode.childrenHLineStartX);
+      console.log(parentRelationNode.childrenHLineEndX);
+      console.log("-------");
       return parentRelationNode.drawChildrenHLine();
     };
 
