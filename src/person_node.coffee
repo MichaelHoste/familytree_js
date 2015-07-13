@@ -215,8 +215,8 @@ class PersonNode
       lineStartX = if @person.sex == 'M' then startX else endX
 
       if children.length > 1
-        size   = children[0].node.partnersWidth()
-        startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2 + size
+        #size   = children[i].node.partnersWidth()
+        startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2 #+ size
       else if children.length == 1
         if i == 0 # first (and only?) partner
           personPosition1 = partnerRelation.husband.node.text.position
@@ -234,13 +234,16 @@ class PersonNode
         startX = 0
 
       # update positions of children
-      for child, i in partnerRelation.children
+      for child, j in partnerRelation.children
         child.node.setPosition(startX, y)
         child.node.update()
         child.node.updateBottomPeople()
 
         startX += Constants.margin + child.node.width()
-        startX += children[i+1].node.partnersWidth() if i+1 < children.length
+        if child.sex == 'M'
+          startX += child.node.partnersWidth()
+        if j+1 < children.length && children[j+1].sex == 'F'
+          startX += children[j+1].node.partnersWidth()
 
   drawHorizontalLineBetweenChildren: ->
     for partnerRelation in @person.partnerRelations
@@ -283,42 +286,48 @@ class PersonNode
     husband          = @person.parentRelation.husband
     wife             = @person.parentRelation.wife
 
-    if @person.sex == 'M'
-      # Siblings on left-side (and father on the edge)
-      h_offset = 0
-      for child, i in @person.parentRelation.children
-        if child != @person
-          h_offset += child.node.partnersWidth() + child.node.width() + Constants.margin
-
-      h_offset = h_offset + @width() / 2 - husband.node.width() / 2
-      h_offset = Math.max(h_offset, Constants.margin)
-      husband.node.setPosition(@text.position.x - h_offset, y)
+    if @person.parentRelation.children.length == 1 && partnerRelations.length == 0
+      husband.node.setPosition(@text.position.x - (wife.node.width() + husband.node.width() + Constants.margin) / 2 + husband.node.width() / 2, y)
+      wife.node.setPosition(   @text.position.x + (wife.node.width() + husband.node.width() + Constants.margin) / 2 - wife.node.width()    / 2, y)
       husband.node.update()
-
-      # Partners on right-side (and mother on the edge)
-      w_offset = @partnersWidth()
-      w_offset = w_offset + @width() / 2 - wife.node.width() / 2
-      w_offset = Math.max(w_offset, Constants.margin)
-      wife.node.setPosition(@text.position.x + w_offset, y)
       wife.node.update()
-    else if @person.sex == 'F'
-      # Siblings on right-side (and mother on the edge)
-      w_offset = 0
-      for child, i in @person.parentRelation.children
-        if child != @person
-          w_offset += child.node.partnersWidth() + child.node.width() + Constants.margin
+    else
+      if @person.sex == 'M'
+        # Siblings on left-side (and father on the edge)
+        h_offset = 0
+        for child, i in @person.parentRelation.children
+          if child != @person
+            h_offset += child.node.partnersWidth() + child.node.width() + Constants.margin
 
-      w_offset = w_offset + @width() / 2 - wife.node.width() / 2
-      w_offset = Math.max(w_offset, Constants.margin)
-      wife.node.setPosition(@text.position.x + w_offset, y)
-      wife.node.update()
+        h_offset = Math.max(h_offset, Constants.margin/2)
+        h_offset = h_offset + @width() / 2 - husband.node.width() / 2
+        husband.node.setPosition(@text.position.x - h_offset, y)
+        husband.node.update()
 
-      # Partners on left-side (and father on the edge)
-      h_offset = @partnersWidth()
-      h_offset = h_offset + @width() / 2 - husband.node.width() / 2
-      h_offset = Math.max(h_offset, Constants.margin)
-      husband.node.setPosition(@text.position.x - h_offset, y)
-      husband.node.update()
+        # Partners on right-side (and mother on the edge)
+        w_offset = @partnersWidth()
+        w_offset = Math.max(w_offset, Constants.margin/2)
+        w_offset = w_offset + @width() / 2 - wife.node.width() / 2
+        wife.node.setPosition(@text.position.x + w_offset, y)
+        wife.node.update()
+      else if @person.sex == 'F'
+        # Siblings on right-side (and mother on the edge)
+        w_offset = 0
+        for child, i in @person.parentRelation.children
+          if child != @person
+            w_offset += child.node.partnersWidth() + child.node.width() + Constants.margin
+
+        w_offset = Math.max(w_offset, Constants.margin/2)
+        w_offset = w_offset + @width() / 2 - wife.node.width() / 2
+        wife.node.setPosition(@text.position.x + w_offset, y)
+        wife.node.update()
+
+        # Partners on left-side (and father on the edge)
+        h_offset = @partnersWidth()
+        h_offset = Math.max(h_offset, Constants.margin/2)
+        h_offset = h_offset + @width() / 2 - husband.node.width() / 2
+        husband.node.setPosition(@text.position.x - h_offset, y)
+        husband.node.update()
 
   drawParentsHLine: (y) ->
     parentRelationNode = @person.parentRelation.node
@@ -332,13 +341,18 @@ class PersonNode
 
   updateParentsVLinePosition: ->
     parentRelationNode = @person.parentRelation.node
-    if @person.sex == 'M' # man has siblings on the left
-      parentLimit = @person.father()
-    else if @person.sex == 'F' # woman has siblings on the right
-      parentLimit = @person.mother()
 
-    parentRelationNode.vLine.position.x = (@text.position.x + parentLimit.node.text.position.x) / 2
-    parentRelationNode.vLine.position.y = @graphics.position.y - Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2
+    if @person.parentRelation.children.length > 1
+      if @person.sex == 'M' # man has siblings on the left
+        parentLimit = @person.father()
+      else if @person.sex == 'F' # woman has siblings on the right
+        parentLimit = @person.mother()
+
+      parentRelationNode.vLine.position.x = (@text.position.x + parentLimit.node.text.position.x) / 2
+      parentRelationNode.vLine.position.y = @graphics.position.y - Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2
+    else
+      parentRelationNode.vLine.position.x = @vLine.position.x
+      parentRelationNode.vLine.position.y = @graphics.position.y - Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2 + Constants.lineWidth
 
   updateParentsChildrenPositions: ->
     y = @text.position.y
