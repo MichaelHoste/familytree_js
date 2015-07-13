@@ -9,13 +9,20 @@ class PersonNode
     @dirtyPosition  = true
     @dirtyIterator  = 0
 
-    @person.node = this
+    @initializeNodes()
 
     @initializeRectangle()
     @initializeText()
     @initializeVLine()
 
     @bindRectangle()
+
+  initializeNodes: ->
+    @person.node = this
+
+    for partnerRelation in @person.partnerRelations
+      if partnerRelation.node == undefined
+        new RelationNode(@stage, partnerRelation)
 
   initializeRectangle: ->
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
