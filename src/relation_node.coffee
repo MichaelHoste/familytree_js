@@ -66,6 +66,16 @@ class RelationNode
 
     size
 
+  hideLines: ->
+    @hLineStartX = 0
+    @hLineEndX   = 0
+    @drawHLine()
+    @childrenHLineStartX = 0
+    @childrenHLineEndX   = 0
+    @drawChildrenHLine()
+    @vLine.position.x = -1000
+    @vLine.position.y = -1000
+
   setHLine: (startX, endX, y) ->
     @hLineStartX = startX
     @hLineEndX   = endX

@@ -103,23 +103,23 @@ class PersonNode
     @text.position.y = y
     @dirtyPosition   = true
 
+  hideRectangle: ->
+    @graphics.position.x = -1000
+    @graphics.position.y = -1000
+    @text.position.x     = -1000
+    @text.position.y     = -1000
+
+  hideVLine: ->
+    @vLine.position.x  = -1000 if @vLine
+    @vLine.position.y  = -1000 if @vLine
+
   cleanTree: ->
     for person in @stage.familyTree.people
-      person.node.graphics.position.x = -1000
-      person.node.graphics.position.y = -1000
-      person.node.text.position.x     = -1000
-      person.node.text.position.y     = -1000
-      person.node.vLine.position.x    = -1000 if person.node.vLine
-      person.node.vLine.position.y    = -1000 if person.node.vLine
+      person.node.hideRectangle()
+      person.node.hideVLine()
+
       for partnerRelation in person.partnerRelations
-        partnerRelation.node.hLineStartX = 0
-        partnerRelation.node.hLineEndX   = 0
-        partnerRelation.node.drawHLine()
-        partnerRelation.node.childrenHLineStartX = 0
-        partnerRelation.node.childrenHLineEndX   = 0
-        partnerRelation.node.drawChildrenHLine()
-        partnerRelation.node.vLine.position.x = -1000
-        partnerRelation.node.vLine.position.y = -1000
+        partnerRelation.node.hideLines()
 
   displayTree: (x, y) ->
     @root = true

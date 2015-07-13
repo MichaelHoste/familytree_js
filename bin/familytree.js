@@ -361,36 +361,37 @@
       return this.dirtyPosition = true;
     };
 
+    PersonNode.prototype.hideRectangle = function() {
+      this.graphics.position.x = -1000;
+      this.graphics.position.y = -1000;
+      this.text.position.x = -1000;
+      return this.text.position.y = -1000;
+    };
+
+    PersonNode.prototype.hideVLine = function() {
+      if (this.vLine) {
+        this.vLine.position.x = -1000;
+      }
+      if (this.vLine) {
+        return this.vLine.position.y = -1000;
+      }
+    };
+
     PersonNode.prototype.cleanTree = function() {
       var partnerRelation, person, _i, _len, _ref, _results;
       _ref = this.stage.familyTree.people;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         person = _ref[_i];
-        person.node.graphics.position.x = -1000;
-        person.node.graphics.position.y = -1000;
-        person.node.text.position.x = -1000;
-        person.node.text.position.y = -1000;
-        if (person.node.vLine) {
-          person.node.vLine.position.x = -1000;
-        }
-        if (person.node.vLine) {
-          person.node.vLine.position.y = -1000;
-        }
+        person.node.hideRectangle();
+        person.node.hideVLine();
         _results.push((function() {
           var _j, _len1, _ref1, _results1;
           _ref1 = person.partnerRelations;
           _results1 = [];
           for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
             partnerRelation = _ref1[_j];
-            partnerRelation.node.hLineStartX = 0;
-            partnerRelation.node.hLineEndX = 0;
-            partnerRelation.node.drawHLine();
-            partnerRelation.node.childrenHLineStartX = 0;
-            partnerRelation.node.childrenHLineEndX = 0;
-            partnerRelation.node.drawChildrenHLine();
-            partnerRelation.node.vLine.position.x = -1000;
-            _results1.push(partnerRelation.node.vLine.position.y = -1000);
+            _results1.push(partnerRelation.node.hideLines());
           }
           return _results1;
         })());
@@ -799,6 +800,17 @@
         size -= Constants.margin;
       }
       return size;
+    };
+
+    RelationNode.prototype.hideLines = function() {
+      this.hLineStartX = 0;
+      this.hLineEndX = 0;
+      this.drawHLine();
+      this.childrenHLineStartX = 0;
+      this.childrenHLineEndX = 0;
+      this.drawChildrenHLine();
+      this.vLine.position.x = -1000;
+      return this.vLine.position.y = -1000;
     };
 
     RelationNode.prototype.setHLine = function(startX, endX, y) {
