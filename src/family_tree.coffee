@@ -71,8 +71,8 @@ class FamilyTree
   animate: =>
     requestAnimationFrame(@animate)
 
-    @x = 500 if @x == undefined
-    @y = 500 if @y == undefined
+    @x = @width / 2  if @x == undefined
+    @y = @height / 2 if @y == undefined
 
     @rootNode.displayTree(@x, @y)
     @rootNode.update()

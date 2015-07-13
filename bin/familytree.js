@@ -103,10 +103,10 @@
     FamilyTree.prototype.animate = function() {
       requestAnimationFrame(this.animate);
       if (this.x === void 0) {
-        this.x = 500;
+        this.x = this.width / 2;
       }
       if (this.y === void 0) {
-        this.y = 500;
+        this.y = this.height / 2;
       }
       this.rootNode.displayTree(this.x, this.y);
       this.rootNode.update();
@@ -120,7 +120,7 @@
   $(function() {
     var bart, homer, jessica, kido, kido2, kido3, lisa, love, maggie, marge, milhouse, nelson, nelsonJunior, people, selma;
     people = [homer = new Person('Homer', 'M'), marge = homer.addPartner('Marge Bouvier'), bart = homer.relationWith(marge).addChild('Bart', 'M'), lisa = homer.relationWith(marge).addChild('Lisa', 'F'), maggie = homer.relationWith(marge).addChild('Maggie', 'F'), jessica = bart.addPartner('Jessica', 'F'), selma = homer.addPartner('Selma Bouvier'), milhouse = lisa.addPartner('Milhouse'), nelson = lisa.addPartner('Nelson'), kido = lisa.relationWith(milhouse).addChild('Kido1', 'F'), kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), kido3 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M'), love = bart.relationWith(jessica).addChild('love', 'F')];
-    return new FamilyTree(1024, 768, people, lisa);
+    return new FamilyTree(window.innerWidth, window.innerHeight, people, lisa);
   });
 
   Person = (function() {
@@ -271,7 +271,11 @@
       var color;
       color = this.person.sex === 'M' ? 0xB4D8E7 : 0xFFC0CB;
       this.graphics = new PIXI.Graphics();
-      this.graphics.lineStyle(Constants.lineWidth, 0x333333, 1);
+      if (this.root) {
+        this.graphics.lineStyle(Constants.lineWidth, 0x999999, 1);
+      } else {
+        this.graphics.lineStyle(Constants.lineWidth, 0x333333, 1);
+      }
       this.graphics.beginFill(color);
       if (this.person.sex === 'M') {
         this.graphics.drawRect(0, 0, 200, Constants.height);
@@ -287,7 +291,10 @@
       var _this = this;
       this.graphics.interactive = true;
       this.graphics.on('mouseover', function() {
-        return console.log('over graphics');
+        return $('#family_tree').css('cursor', 'pointer');
+      });
+      this.graphics.on('mouseout', function() {
+        return $('#family_tree').css('cursor', 'default');
       });
       this.graphics.on('mousedown', this.stage.background._events.mousedown.fn);
       this.graphics.on('touchstart', this.stage.background._events.touchstart.fn);
@@ -346,7 +353,6 @@
     PersonNode.prototype.displayTree = function(x, y) {
       this.root = true;
       this.dirtyRoot = true;
-      this.dirtyIterator = 0;
       return this.setPosition(x, y);
     };
 
@@ -354,7 +360,11 @@
       this.updatePosition();
       if (this.dirtyRoot) {
         this.updateBottomPersons();
-        return this.updateTopPersons();
+        this.updateTopPersons();
+        if (this.dirtyIterator === 10) {
+          this.dirtyRoot = false;
+        }
+        return this.dirtyIterator++;
       }
     };
 

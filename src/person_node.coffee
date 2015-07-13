@@ -28,7 +28,12 @@ class PersonNode
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
 
     @graphics = new PIXI.Graphics()
-    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
+
+    if @root
+      @graphics.lineStyle(Constants.lineWidth, 0x999999, 1)
+    else
+      @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
+
     @graphics.beginFill(color)
 
     if @person.sex == 'M'
@@ -44,7 +49,11 @@ class PersonNode
   bindRectangle: ->
     @graphics.interactive = true
     @graphics.on('mouseover', =>
-      console.log('over graphics')
+      $('#family_tree').css('cursor', 'pointer')
+    )
+
+    @graphics.on('mouseout', =>
+      $('#family_tree').css('cursor', 'default')
     )
 
     @graphics.on('mousedown',  @stage.background._events.mousedown.fn)
@@ -91,7 +100,6 @@ class PersonNode
   displayTree: (x, y) ->
     @root          = true
     @dirtyRoot     = true
-    @dirtyIterator = 0
     @setPosition(x, y)
 
   update: ->
@@ -101,9 +109,9 @@ class PersonNode
       @updateBottomPersons()
       @updateTopPersons()
 
-      #if @dirtyIterator == 10
-      #  @dirtyRoot = false
-      #@dirtyIterator++
+      if @dirtyIterator == 10
+        @dirtyRoot = false
+      @dirtyIterator++
 
   updateBottomPersons: ->
     @updatePartnerPositions()

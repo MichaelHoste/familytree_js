@@ -17,5 +17,10 @@ $ ->
     #nelsonBaby   = lisa.relationWith(nelson).addChild('Nelson Baby', 'M')
   ]
 
-  new FamilyTree(1024, 768, people, lisa)
+  new FamilyTree(
+    window.innerWidth,
+    window.innerHeight,
+    people,
+    lisa
+  )
 
