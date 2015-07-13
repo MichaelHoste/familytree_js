@@ -36,16 +36,20 @@ class FamilyTree
   bindScroll: ->
     @background.interactive = true
 
-    onDown = =>
-      @isDown = true
+    onDown = (mouseData) =>
+      @isDown       = true
+      @startX       = @x
+      @startY       = @y
+      @startOffsetX = mouseData.data.originalEvent.x
+      @startOffsetY = mouseData.data.originalEvent.y
 
     onUp = =>
       @isDown = false
 
     onMove = (mouseData) =>
       if @isDown
-        @x += mouseData.data.originalEvent.movementX
-        @y += mouseData.data.originalEvent.movementY
+        @x = @startX + mouseData.data.originalEvent.x - @startOffsetX
+        @y = @startY + mouseData.data.originalEvent.y - @startOffsetY
 
     @background.on('mousedown',  onDown)
     @background.on('touchstart', onDown)
@@ -56,8 +60,6 @@ class FamilyTree
     @background.on('touchendoutside', onUp)
 
     @background.on('mousemove', onMove)
-
-    console.log @background
 
   initializeNodes: ->
     for person in @people

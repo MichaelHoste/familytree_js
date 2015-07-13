@@ -59,16 +59,20 @@
       var onDown, onMove, onUp,
         _this = this;
       this.background.interactive = true;
-      onDown = function() {
-        return _this.isDown = true;
+      onDown = function(mouseData) {
+        _this.isDown = true;
+        _this.startX = _this.x;
+        _this.startY = _this.y;
+        _this.startOffsetX = mouseData.data.originalEvent.x;
+        return _this.startOffsetY = mouseData.data.originalEvent.y;
       };
       onUp = function() {
         return _this.isDown = false;
       };
       onMove = function(mouseData) {
         if (_this.isDown) {
-          _this.x += mouseData.data.originalEvent.movementX;
-          return _this.y += mouseData.data.originalEvent.movementY;
+          _this.x = _this.startX + mouseData.data.originalEvent.x - _this.startOffsetX;
+          return _this.y = _this.startY + mouseData.data.originalEvent.y - _this.startOffsetY;
         }
       };
       this.background.on('mousedown', onDown);
@@ -77,8 +81,7 @@
       this.background.on('touchend', onUp);
       this.background.on('mouseupoutside', onUp);
       this.background.on('touchendoutside', onUp);
-      this.background.on('mousemove', onMove);
-      return console.log(this.background);
+      return this.background.on('mousemove', onMove);
     };
 
     FamilyTree.prototype.initializeNodes = function() {
