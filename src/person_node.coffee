@@ -56,6 +56,15 @@ class PersonNode
       $('#family_tree').css('cursor', 'default')
     )
 
+    @graphics.on('click', =>
+      @stage.familyTree.rootNode.root      = false
+      @stage.familyTree.rootNode.dirtyRoot = false
+      @stage.familyTree.rootNode = @
+
+      @cleanTree()
+      @displayTree(@stage.familyTree.x, @stage.familyTree.y)
+    )
+
     @graphics.on('mousedown',  @stage.background._events.mousedown.fn)
     @graphics.on('touchstart', @stage.background._events.touchstart.fn)
 
@@ -96,6 +105,24 @@ class PersonNode
     @text.position.x = x
     @text.position.y = y
     @dirtyPosition   = true
+
+  cleanTree: ->
+    for person in @stage.familyTree.people
+      person.node.graphics.position.x = -1000
+      person.node.graphics.position.y = -1000
+      person.node.text.position.x     = -1000
+      person.node.text.position.y     = -1000
+      person.node.vLine.position.x    = -1000 if person.node.vLine
+      person.node.vLine.position.y    = -1000 if person.node.vLine
+      for partnerRelation in person.partnerRelations
+        partnerRelation.node.hLineStartX = 0
+        partnerRelation.node.hLineEndX   = 0
+        partnerRelation.node.drawHLine()
+        partnerRelation.node.childrenHLineStartX = 0
+        partnerRelation.node.childrenHLineEndX   = 0
+        partnerRelation.node.drawChildrenHLine()
+        partnerRelation.node.vLine.position.x = -1000
+        partnerRelation.node.vLine.position.y = -1000
 
   displayTree: (x, y) ->
     @root          = true

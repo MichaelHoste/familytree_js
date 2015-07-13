@@ -10,9 +10,7 @@ class FamilyTree
     @stage = new PIXI.Container()
 
     @initializeBackground()
-
     @bindScroll()
-
     @initializeNodes()
 
     @animate()
@@ -30,6 +28,7 @@ class FamilyTree
     @background.width  = @width
     @background.height = @height
 
+    @stage.familyTree = @
     @stage.background = @background
     @stage.addChild(@background)
 
