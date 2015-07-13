@@ -15,6 +15,8 @@ class PersonNode
     @initializeText()
     @initializeVLine()
 
+    @bindRectangle()
+
   initializeRectangle: ->
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
 
@@ -32,6 +34,12 @@ class PersonNode
 
     @stage.addChild(@graphics)
 
+  bindRectangle: ->
+    @graphics.interactive = true
+    @graphics.on('mouseover', ->
+      console.log("hello world")
+    )
+
   initializeText: ->
     @text = new PIXI.Text(@person.name, { font : "#{Constants.fontSize}px Arial", fill : 0x222222 })
     @text.position.x = -1000
@@ -47,12 +55,6 @@ class PersonNode
       @vLine.moveTo(0, 0)
       @vLine.lineTo(0, -Constants.verticalMargin / 2 - Constants.lineWidth)
       @stage.addChild(@vLine)
-
-  displayTree: (x, y) ->
-    @root          = true
-    @dirtyRoot     = true
-    @dirtyIterator = 0
-    @setPosition(x, y)
 
   width: ->
     @graphics.width
@@ -71,18 +73,24 @@ class PersonNode
     @text.position.y = y
     @dirtyPosition   = true
 
+  displayTree: (x, y) ->
+    @root          = true
+    @dirtyRoot     = true
+    @dirtyIterator = 0
+    @setPosition(x, y)
+
   update: ->
     @updatePosition()
 
     if @dirtyRoot
-      @display()
+      @updateBottomPersons()
       @updateTopPersons()
 
       #if @dirtyIterator == 10
       #  @dirtyRoot = false
       #@dirtyIterator++
 
-  display: ->
+  updateBottomPersons: ->
     @updatePartnerPositions()
     @drawRelationLines()
     @updateChildrenPositions()
@@ -182,11 +190,11 @@ class PersonNode
       # update positions of children
       for child, i in partnerRelation.children
         child.node.setPosition(startX, y)
-        child.node.display()
+        child.node.updateBottomPersons()
+        child.node.update()
 
         startX += Constants.margin + child.node.width()
         startX += children[i+1].node.partnersWidth() if i+1 < children.length
-        child.node.update()
 
   drawHorizontalLineBetweenChildren: ->
     for partnerRelation in @person.partnerRelations
@@ -294,7 +302,7 @@ class PersonNode
         else if child.sex == 'M'
           child.node.setPosition(@text.position.x - child.node.partnersWidth() - offset, y)
 
-      child.node.display()
+      child.node.updateBottomPersons()
       child.node.update()
       offset += child.node.partnersWidth() + child.node.width() + Constants.margin
 

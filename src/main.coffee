@@ -8,6 +8,18 @@ $ ->
 
   stage = new PIXI.Container()
 
+  # White Background
+  background        = PIXI.Sprite.fromImage('images/pixel.gif');
+  background.width  = renderer.width
+  background.height = renderer.height
+
+  stage.addChild(background)
+
+  background.interactive = true
+  background.on('mouseover', ->
+    console.log("h world")
+  )
+
   homer    = new Person('Homer', 'M')
   marge    = homer.addPartner('Marge Bouvier')
   bart     = homer.relationWith(marge).addChild('Bart',   'M')
@@ -47,11 +59,15 @@ $ ->
   bartJessicaNode  = new RelationNode(stage, bart.relationWith(jessica))
 
   rootNode = lisaNode
-  rootNode.displayTree(600, 384)
+
+  x = 600
+  y = 384
+  rootNode.displayTree(x, y)
 
   animate = ->
     requestAnimationFrame(animate)
 
+    rootNode.displayTree(x, y)
     rootNode.update()
 
     renderer.render(stage)

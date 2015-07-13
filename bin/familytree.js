@@ -24,13 +24,21 @@
   })();
 
   $(function() {
-    var animate, bart, bartJessicaNode, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, jessica, jessicaNode, kido, kido2, kido2Node, kido3, kido3Node, kidoNode, lisa, lisaMilhouseNode, lisaNelsonNode, lisaNode, love, loveNode, maggie, maggieNode, marge, margeNode, milhouse, milhouseNode, nelson, nelsonJunior, nelsonJuniorNode, nelsonNode, renderer, rootNode, selma, selmaNode, stage;
+    var animate, background, bart, bartJessicaNode, bartNode, homer, homerMargeNode, homerNode, homerSelmaNode, jessica, jessicaNode, kido, kido2, kido2Node, kido3, kido3Node, kidoNode, lisa, lisaMilhouseNode, lisaNelsonNode, lisaNode, love, loveNode, maggie, maggieNode, marge, margeNode, milhouse, milhouseNode, nelson, nelsonJunior, nelsonJuniorNode, nelsonNode, renderer, rootNode, selma, selmaNode, stage, x, y;
     renderer = new PIXI.autoDetectRenderer(1024, 768, {
       antialias: true,
       backgroundColor: 0xFFFFFF
     });
     $('#content')[0].appendChild(renderer.view);
     stage = new PIXI.Container();
+    background = PIXI.Sprite.fromImage('images/pixel.gif');
+    background.width = renderer.width;
+    background.height = renderer.height;
+    stage.addChild(background);
+    background.interactive = true;
+    background.on('mouseover', function() {
+      return console.log("h world");
+    });
     homer = new Person('Homer', 'M');
     marge = homer.addPartner('Marge Bouvier');
     bart = homer.relationWith(marge).addChild('Bart', 'M');
@@ -65,9 +73,12 @@
     lisaNelsonNode = new RelationNode(stage, lisa.relationWith(nelson));
     bartJessicaNode = new RelationNode(stage, bart.relationWith(jessica));
     rootNode = lisaNode;
-    rootNode.displayTree(600, 384);
+    x = 600;
+    y = 384;
+    rootNode.displayTree(x, y);
     animate = function() {
       requestAnimationFrame(animate);
+      rootNode.displayTree(x, y);
       rootNode.update();
       return renderer.render(stage);
     };
@@ -199,6 +210,7 @@
       this.initializeRectangle();
       this.initializeText();
       this.initializeVLine();
+      this.bindRectangle();
     }
 
     PersonNode.prototype.initializeRectangle = function() {
@@ -215,6 +227,13 @@
       this.graphics.position.x = -1000;
       this.graphics.position.y = -1000;
       return this.stage.addChild(this.graphics);
+    };
+
+    PersonNode.prototype.bindRectangle = function() {
+      this.graphics.interactive = true;
+      return this.graphics.on('mouseover', function() {
+        return console.log("hello world");
+      });
     };
 
     PersonNode.prototype.initializeText = function() {
@@ -236,13 +255,6 @@
         this.vLine.lineTo(0, -Constants.verticalMargin / 2 - Constants.lineWidth);
         return this.stage.addChild(this.vLine);
       }
-    };
-
-    PersonNode.prototype.displayTree = function(x, y) {
-      this.root = true;
-      this.dirtyRoot = true;
-      this.dirtyIterator = 0;
-      return this.setPosition(x, y);
     };
 
     PersonNode.prototype.width = function() {
@@ -270,15 +282,22 @@
       return this.dirtyPosition = true;
     };
 
+    PersonNode.prototype.displayTree = function(x, y) {
+      this.root = true;
+      this.dirtyRoot = true;
+      this.dirtyIterator = 0;
+      return this.setPosition(x, y);
+    };
+
     PersonNode.prototype.update = function() {
       this.updatePosition();
       if (this.dirtyRoot) {
-        this.display();
+        this.updateBottomPersons();
         return this.updateTopPersons();
       }
     };
 
-    PersonNode.prototype.display = function() {
+    PersonNode.prototype.updateBottomPersons = function() {
       this.updatePartnerPositions();
       this.drawRelationLines();
       this.updateChildrenPositions();
@@ -392,12 +411,14 @@
           for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
             child = _ref1[i];
             child.node.setPosition(startX, y);
-            child.node.display();
+            child.node.updateBottomPersons();
+            child.node.update();
             startX += Constants.margin + child.node.width();
             if (i + 1 < children.length) {
-              startX += children[i + 1].node.partnersWidth();
+              _results1.push(startX += children[i + 1].node.partnersWidth());
+            } else {
+              _results1.push(void 0);
             }
-            _results1.push(child.node.update());
           }
           return _results1;
         })());
@@ -545,7 +566,7 @@
             child.node.setPosition(this.text.position.x - child.node.partnersWidth() - offset, y);
           }
         }
-        child.node.display();
+        child.node.updateBottomPersons();
         child.node.update();
         _results.push(offset += child.node.partnersWidth() + child.node.width() + Constants.margin);
       }
