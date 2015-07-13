@@ -93,7 +93,8 @@
         person = _ref[_i];
         node = new PersonNode(this.stage, person);
         if (person === this.root) {
-          _results.push(this.rootNode = node);
+          this.rootNode = node;
+          _results.push(this.rootNode.dirtyRoot = true);
         } else {
           _results.push(void 0);
         }
@@ -301,6 +302,7 @@
         _this.stage.familyTree.rootNode.root = false;
         _this.stage.familyTree.rootNode.dirtyRoot = false;
         _this.stage.familyTree.rootNode = _this;
+        _this.dirtyRoot = true;
         _this.cleanTree();
         return _this.displayTree(_this.stage.familyTree.x, _this.stage.familyTree.y);
       });
@@ -397,7 +399,6 @@
 
     PersonNode.prototype.displayTree = function(x, y) {
       this.root = true;
-      this.dirtyRoot = true;
       return this.setPosition(x, y);
     };
 
@@ -406,7 +407,7 @@
       if (this.dirtyRoot) {
         this.updateBottomPersons();
         this.updateTopPersons();
-        if (this.dirtyIterator === 10) {
+        if (this.dirtyIterator >= 10) {
           this.dirtyRoot = false;
         }
         return this.dirtyIterator++;
@@ -603,6 +604,7 @@
         wife.node.setPosition(this.text.position.x + offset, y);
         return wife.node.update();
       } else if (this.person.sex === 'F') {
+        console.log("1");
         offset = this.partnersWidth() + this.width() / 2 - husband.node.width() / 2;
         husband.node.setPosition(this.text.position.x - offset, y);
         return husband.node.update();
@@ -627,6 +629,7 @@
         husband.node.setPosition(this.text.position.x - offset, y);
         return husband.node.update();
       } else if (this.person.sex === 'F') {
+        console.log("2");
         offset = offset + this.width() / 2 - wife.node.width() / 2;
         wife.node.setPosition(this.text.position.x + offset, y);
         return wife.node.update();

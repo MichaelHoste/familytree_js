@@ -48,26 +48,23 @@ class PersonNode
 
   bindRectangle: ->
     @graphics.interactive = true
-    @graphics.on('mouseover', =>
-      $('#family_tree').css('cursor', 'pointer')
-    )
 
-    @graphics.on('mouseout', =>
-      $('#family_tree').css('cursor', 'default')
-    )
+    @graphics.on('mouseover', => $('#family_tree').css('cursor', 'pointer'))
+
+    @graphics.on('mouseout', => $('#family_tree').css('cursor', 'default'))
 
     @graphics.on('click', =>
       @stage.familyTree.rootNode.root      = false
       @stage.familyTree.rootNode.dirtyRoot = false
-      @stage.familyTree.rootNode = @
+      @stage.familyTree.rootNode           = @
+      @dirtyRoot                           = true
 
       @cleanTree()
       @displayTree(@stage.familyTree.x, @stage.familyTree.y)
     )
 
-    @graphics.on('mousedown',  @stage.background._events.mousedown.fn)
-    @graphics.on('touchstart', @stage.background._events.touchstart.fn)
-
+    @graphics.on('mousedown',       @stage.background._events.mousedown.fn)
+    @graphics.on('touchstart',      @stage.background._events.touchstart.fn)
     @graphics.on('mouseup',         @stage.background._events.mouseup.fn)
     @graphics.on('touchend',        @stage.background._events.touchend.fn)
     @graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
@@ -125,8 +122,7 @@ class PersonNode
         partnerRelation.node.vLine.position.y = -1000
 
   displayTree: (x, y) ->
-    @root          = true
-    @dirtyRoot     = true
+    @root = true
     @setPosition(x, y)
 
   update: ->
@@ -136,7 +132,7 @@ class PersonNode
       @updateBottomPersons()
       @updateTopPersons()
 
-      if @dirtyIterator == 10
+      if @dirtyIterator >= 10
         @dirtyRoot = false
       @dirtyIterator++
 
@@ -288,6 +284,7 @@ class PersonNode
       wife.node.setPosition(@text.position.x + offset, y)
       wife.node.update()
     else if @person.sex == 'F'
+      console.log("1")
       offset = @partnersWidth() + @width() / 2 - husband.node.width() / 2
       husband.node.setPosition(@text.position.x - offset, y)
       husband.node.update()
@@ -307,6 +304,7 @@ class PersonNode
       husband.node.setPosition(@text.position.x - offset, y)
       husband.node.update()
     else if @person.sex == 'F'
+      console.log("2")
       offset = offset + @width() / 2 - wife.node.width() / 2
       wife.node.setPosition(@text.position.x + offset, y)
       wife.node.update()

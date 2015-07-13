@@ -50,15 +50,13 @@ class FamilyTree
         @x = @startX + mouseData.data.originalEvent.x - @startOffsetX
         @y = @startY + mouseData.data.originalEvent.y - @startOffsetY
 
-    @background.on('mousedown',  onDown)
-    @background.on('touchstart', onDown)
-
+    @background.on('mousedown',       onDown)
+    @background.on('touchstart',      onDown)
     @background.on('mouseup',         onUp)
     @background.on('touchend',        onUp)
     @background.on('mouseupoutside',  onUp)
     @background.on('touchendoutside', onUp)
-
-    @background.on('mousemove', onMove)
+    @background.on('mousemove',       onMove)
 
   initializeNodes: ->
     for person in @people
@@ -66,6 +64,7 @@ class FamilyTree
 
       if person == @root
         @rootNode = node
+        @rootNode.dirtyRoot = true
 
   animate: =>
     requestAnimationFrame(@animate)
