@@ -73,7 +73,8 @@
       onMove = function(mouseData) {
         if (_this.isDown) {
           _this.x = _this.startX + mouseData.data.originalEvent.x - _this.startOffsetX;
-          return _this.y = _this.startY + mouseData.data.originalEvent.y - _this.startOffsetY;
+          _this.y = _this.startY + mouseData.data.originalEvent.y - _this.startOffsetY;
+          return _this.rootNode.dirtyRoot = true;
         }
       };
       this.background.on('mousedown', onDown);

@@ -49,6 +49,7 @@ class FamilyTree
       if @isDown
         @x = @startX + mouseData.data.originalEvent.x - @startOffsetX
         @y = @startY + mouseData.data.originalEvent.y - @startOffsetY
+        @rootNode.dirtyRoot = true
 
     @background.on('mousedown',       onDown)
     @background.on('touchstart',      onDown)
