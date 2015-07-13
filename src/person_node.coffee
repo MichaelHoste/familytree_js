@@ -284,7 +284,6 @@ class PersonNode
       wife.node.setPosition(@text.position.x + offset, y)
       wife.node.update()
     else if @person.sex == 'F'
-      console.log("1")
       offset = @partnersWidth() + @width() / 2 - husband.node.width() / 2
       husband.node.setPosition(@text.position.x - offset, y)
       husband.node.update()
@@ -304,7 +303,6 @@ class PersonNode
       husband.node.setPosition(@text.position.x - offset, y)
       husband.node.update()
     else if @person.sex == 'F'
-      console.log("2")
       offset = offset + @width() / 2 - wife.node.width() / 2
       wife.node.setPosition(@text.position.x + offset, y)
       wife.node.update()
@@ -355,16 +353,10 @@ class PersonNode
       offset += child.node.partnersWidth() + child.node.width() + Constants.margin
 
   drawParentsChildrenHLine: (y) ->
-    console.log @person.name
     parentRelationNode = @person.parentRelation.node
     children           = @person.parentRelation.children
 
     parentRelationNode.childrenHLineStartX = _.min(children, (child) -> child.node.text.position.x).node.text.position.x
     parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.text.position.x).node.text.position.x
     parentRelationNode.childrenHLineY      = y + Constants.baseLine + Constants.verticalMargin / 2
-
-    console.log parentRelationNode.childrenHLineStartX
-    console.log parentRelationNode.childrenHLineEndX
-    console.log "-------"
-
     parentRelationNode.drawChildrenHLine()

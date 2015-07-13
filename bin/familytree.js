@@ -122,7 +122,7 @@
 
   $(function() {
     var bart, homer, jessica, kido, kido2, kido3, lisa, love, maggie, marge, milhouse, nelson, nelsonJunior, people, selma;
-    people = [homer = new Person('Homer', 'M'), marge = homer.addPartner('Marge Bouvier'), bart = homer.relationWith(marge).addChild('Bart', 'M'), lisa = homer.relationWith(marge).addChild('Lisa', 'F'), maggie = homer.relationWith(marge).addChild('Maggie', 'F'), jessica = bart.addPartner('Jessica', 'F'), selma = homer.addPartner('Selma Bouvier'), milhouse = lisa.addPartner('Milhouse'), nelson = lisa.addPartner('Nelson'), kido = lisa.relationWith(milhouse).addChild('Kido1', 'F'), kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), kido3 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M'), love = bart.relationWith(jessica).addChild('love', 'F')];
+    people = [homer = new Person('Homer', 'M'), marge = homer.addPartner('Marge Bouvier'), bart = homer.relationWith(marge).addChild('Bart', 'M'), lisa = homer.relationWith(marge).addChild('Lisa', 'F'), maggie = homer.relationWith(marge).addChild('Maggie', 'F'), jessica = bart.addPartner('Jessica', 'F'), selma = homer.addPartner('Selma Bouvier'), milhouse = lisa.addPartner('Milhouse'), nelson = lisa.addPartner('Nelson'), kido = lisa.relationWith(milhouse).addChild('Kido1', 'F'), kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), kido3 = lisa.relationWith(milhouse).addChild('Kido3', 'M'), nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M'), love = bart.relationWith(jessica).addChild('love', 'F')];
     return new FamilyTree(window.innerWidth, window.innerHeight, people, lisa);
   });
 
@@ -606,7 +606,6 @@
         wife.node.setPosition(this.text.position.x + offset, y);
         return wife.node.update();
       } else if (this.person.sex === 'F') {
-        console.log("1");
         offset = this.partnersWidth() + this.width() / 2 - husband.node.width() / 2;
         husband.node.setPosition(this.text.position.x - offset, y);
         return husband.node.update();
@@ -631,7 +630,6 @@
         husband.node.setPosition(this.text.position.x - offset, y);
         return husband.node.update();
       } else if (this.person.sex === 'F') {
-        console.log("2");
         offset = offset + this.width() / 2 - wife.node.width() / 2;
         wife.node.setPosition(this.text.position.x + offset, y);
         return wife.node.update();
@@ -696,7 +694,6 @@
 
     PersonNode.prototype.drawParentsChildrenHLine = function(y) {
       var children, parentRelationNode;
-      console.log(this.person.name);
       parentRelationNode = this.person.parentRelation.node;
       children = this.person.parentRelation.children;
       parentRelationNode.childrenHLineStartX = _.min(children, function(child) {
@@ -706,9 +703,6 @@
         return child.node.text.position.x;
       }).node.text.position.x;
       parentRelationNode.childrenHLineY = y + Constants.baseLine + Constants.verticalMargin / 2;
-      console.log(parentRelationNode.childrenHLineStartX);
-      console.log(parentRelationNode.childrenHLineEndX);
-      console.log("-------");
       return parentRelationNode.drawChildrenHLine();
     };
 

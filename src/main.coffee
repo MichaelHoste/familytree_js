@@ -11,7 +11,7 @@ $ ->
     nelson       = lisa.addPartner('Nelson')
     kido         = lisa.relationWith(milhouse).addChild('Kido1', 'F')
     kido2        = lisa.relationWith(milhouse).addChild('Kido2', 'M')
-    kido3        = lisa.relationWith(milhouse).addChild('Kido2', 'M')
+    kido3        = lisa.relationWith(milhouse).addChild('Kido3', 'M')
     nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M')
     love         = bart.relationWith(jessica).addChild('love', 'F')
     #nelsonBaby   = lisa.relationWith(nelson).addChild('Nelson Baby', 'M')
