@@ -34,8 +34,8 @@
       this.initializeRenderer();
       this.stage = new PIXI.Container();
       this.initializeBackground();
-      this.initializeNodes();
       this.bindScroll();
+      this.initializeNodes();
       this.animate();
     }
 
@@ -51,14 +51,34 @@
       this.background = PIXI.Sprite.fromImage('images/pixel.gif');
       this.background.width = this.width;
       this.background.height = this.height;
+      this.stage.background = this.background;
       return this.stage.addChild(this.background);
     };
 
     FamilyTree.prototype.bindScroll = function() {
+      var onDown, onMove, onUp,
+        _this = this;
       this.background.interactive = true;
-      return this.background.on('mouseover', function() {
-        return console.log("h world");
-      });
+      onDown = function() {
+        return _this.isDown = true;
+      };
+      onUp = function() {
+        return _this.isDown = false;
+      };
+      onMove = function(mouseData) {
+        if (_this.isDown) {
+          _this.x += mouseData.data.originalEvent.movementX;
+          return _this.y += mouseData.data.originalEvent.movementY;
+        }
+      };
+      this.background.on('mousedown', onDown);
+      this.background.on('touchstart', onDown);
+      this.background.on('mouseup', onUp);
+      this.background.on('touchend', onUp);
+      this.background.on('mouseupoutside', onUp);
+      this.background.on('touchendoutside', onUp);
+      this.background.on('mousemove', onMove);
+      return console.log(this.background);
     };
 
     FamilyTree.prototype.initializeNodes = function() {
@@ -78,15 +98,14 @@
     };
 
     FamilyTree.prototype.animate = function() {
-      var x, y;
       requestAnimationFrame(this.animate);
-      if (x === void 0) {
-        x = 500;
+      if (this.x === void 0) {
+        this.x = 500;
       }
-      if (y === void 0) {
-        y = 500;
+      if (this.y === void 0) {
+        this.y = 500;
       }
-      this.rootNode.displayTree(x, y);
+      this.rootNode.displayTree(this.x, this.y);
       this.rootNode.update();
       return this.renderer.render(this.stage);
     };
@@ -262,10 +281,17 @@
     };
 
     PersonNode.prototype.bindRectangle = function() {
+      var _this = this;
       this.graphics.interactive = true;
-      return this.graphics.on('mouseover', function() {
-        return console.log("hello world");
+      this.graphics.on('mouseover', function() {
+        return console.log('over graphics');
       });
+      this.graphics.on('mousedown', this.stage.background._events.mousedown.fn);
+      this.graphics.on('touchstart', this.stage.background._events.touchstart.fn);
+      this.graphics.on('mouseup', this.stage.background._events.mouseup.fn);
+      this.graphics.on('touchend', this.stage.background._events.touchend.fn);
+      this.graphics.on('mouseupoutside', this.stage.background._events.mouseupoutside.fn);
+      return this.graphics.on('touchendoutside', this.stage.background._events.touchendoutside.fn);
     };
 
     PersonNode.prototype.initializeText = function() {
@@ -374,7 +400,7 @@
 
     PersonNode.prototype.drawRelationLines = function() {
       var endX, lineWidth, partnerRelation, position, previousLineWidth, previousNodeWidth, startX, y, _i, _len, _ref, _results;
-      y = this.graphics.position.y + Constants.height / 2;
+      y = this.text.position.y + Constants.baseLine + Constants.lineWidth;
       if (this.person.sex === 'M') {
         position = this.text.position.x + this.width() / 2;
       } else if (this.person.sex === 'F') {
@@ -443,8 +469,8 @@
           for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
             child = _ref1[i];
             child.node.setPosition(startX, y);
-            child.node.updateBottomPersons();
             child.node.update();
+            child.node.updateBottomPersons();
             startX += Constants.margin + child.node.width();
             if (i + 1 < children.length) {
               _results1.push(startX += children[i + 1].node.partnersWidth());

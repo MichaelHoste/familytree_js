@@ -43,9 +43,17 @@ class PersonNode
 
   bindRectangle: ->
     @graphics.interactive = true
-    @graphics.on('mouseover', ->
-      console.log("hello world")
+    @graphics.on('mouseover', =>
+      console.log('over graphics')
     )
+
+    @graphics.on('mousedown',  @stage.background._events.mousedown.fn)
+    @graphics.on('touchstart', @stage.background._events.touchstart.fn)
+
+    @graphics.on('mouseup',         @stage.background._events.mouseup.fn)
+    @graphics.on('touchend',        @stage.background._events.touchend.fn)
+    @graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
+    @graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
 
   initializeText: ->
     @text = new PIXI.Text(@person.name, { font : "#{Constants.fontSize}px Arial", fill : 0x222222 })
@@ -136,7 +144,7 @@ class PersonNode
 
   drawRelationLines: ->
     # y position of line
-    y = @graphics.position.y + Constants.height / 2
+    y = @text.position.y + Constants.baseLine + Constants.lineWidth
 
     # x position to start the line
     if @person.sex == 'M'
@@ -197,8 +205,8 @@ class PersonNode
       # update positions of children
       for child, i in partnerRelation.children
         child.node.setPosition(startX, y)
-        child.node.updateBottomPersons()
         child.node.update()
+        child.node.updateBottomPersons()
 
         startX += Constants.margin + child.node.width()
         startX += children[i+1].node.partnersWidth() if i+1 < children.length

@@ -10,9 +10,10 @@ class FamilyTree
     @stage = new PIXI.Container()
 
     @initializeBackground()
-    @initializeNodes()
 
     @bindScroll()
+
+    @initializeNodes()
 
     @animate()
 
@@ -29,13 +30,34 @@ class FamilyTree
     @background.width  = @width
     @background.height = @height
 
+    @stage.background = @background
     @stage.addChild(@background)
 
   bindScroll: ->
     @background.interactive = true
-    @background.on('mouseover', ->
-      console.log("h world")
-    )
+
+    onDown = =>
+      @isDown = true
+
+    onUp = =>
+      @isDown = false
+
+    onMove = (mouseData) =>
+      if @isDown
+        @x += mouseData.data.originalEvent.movementX
+        @y += mouseData.data.originalEvent.movementY
+
+    @background.on('mousedown',  onDown)
+    @background.on('touchstart', onDown)
+
+    @background.on('mouseup',         onUp)
+    @background.on('touchend',        onUp)
+    @background.on('mouseupoutside',  onUp)
+    @background.on('touchendoutside', onUp)
+
+    @background.on('mousemove', onMove)
+
+    console.log @background
 
   initializeNodes: ->
     for person in @people
@@ -47,10 +69,10 @@ class FamilyTree
   animate: =>
     requestAnimationFrame(@animate)
 
-    x = 500 if x == undefined
-    y = 500 if y == undefined
+    @x = 500 if @x == undefined
+    @y = 500 if @y == undefined
 
-    @rootNode.displayTree(x, y)
+    @rootNode.displayTree(@x, @y)
     @rootNode.update()
 
     @renderer.render(@stage)
