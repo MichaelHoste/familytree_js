@@ -407,8 +407,8 @@
     PersonNode.prototype.update = function() {
       this.updatePosition();
       if (this.dirtyRoot) {
-        this.updateBottomPersons();
-        this.updateTopPersons();
+        this.updateBottomPeople();
+        this.updateTopPeople();
         if (this.dirtyIterator >= 10) {
           this.dirtyRoot = false;
         }
@@ -416,7 +416,7 @@
       }
     };
 
-    PersonNode.prototype.updateBottomPersons = function() {
+    PersonNode.prototype.updateBottomPeople = function() {
       this.updatePartnerPositions();
       this.drawRelationLines();
       this.updateChildrenPositions();
@@ -531,7 +531,7 @@
             child = _ref1[i];
             child.node.setPosition(startX, y);
             child.node.update();
-            child.node.updateBottomPersons();
+            child.node.updateBottomPeople();
             startX += Constants.margin + child.node.width();
             if (i + 1 < children.length) {
               _results1.push(startX += children[i + 1].node.partnersWidth());
@@ -584,12 +584,11 @@
       return _results;
     };
 
-    PersonNode.prototype.updateTopPersons = function() {
+    PersonNode.prototype.updateTopPeople = function() {
       var y;
       if (this.person.parentRelation) {
         y = this.text.position.y - this.graphics.height / 2 - Constants.verticalMargin;
-        this.updateParent1Position(y);
-        this.updateParent2Position(y);
+        this.updateParentsPosition(y);
         this.drawParentsHLine(y);
         this.updateParentsVLinePosition();
         this.updateParentsChildrenPositions();
@@ -597,42 +596,47 @@
       }
     };
 
-    PersonNode.prototype.updateParent1Position = function(y) {
-      var husband, offset, wife;
+    PersonNode.prototype.updateParentsPosition = function(y) {
+      var child, h_offset, husband, i, partnerRelations, w_offset, wife, _i, _j, _len, _len1, _ref, _ref1;
+      partnerRelations = this.person.partnerRelations;
       husband = this.person.parentRelation.husband;
       wife = this.person.parentRelation.wife;
       if (this.person.sex === 'M') {
-        offset = this.partnersWidth() + this.width() / 2 - wife.node.width() / 2;
-        wife.node.setPosition(this.text.position.x + offset, y);
-        return wife.node.update();
-      } else if (this.person.sex === 'F') {
-        offset = this.partnersWidth() + this.width() / 2 - husband.node.width() / 2;
-        husband.node.setPosition(this.text.position.x - offset, y);
-        return husband.node.update();
-      }
-    };
-
-    PersonNode.prototype.updateParent2Position = function(y) {
-      var child, husband, i, offset, wife, _i, _len, _ref;
-      husband = this.person.parentRelation.husband;
-      wife = this.person.parentRelation.wife;
-      offset = 0;
-      _ref = this.person.parentRelation.children;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        child = _ref[i];
-        if (child !== this.person) {
-          child.node.update();
-          offset += child.node.partnersWidth() + child.node.width() + Constants.margin;
+        h_offset = 0;
+        _ref = this.person.parentRelation.children;
+        for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+          child = _ref[i];
+          if (child !== this.person) {
+            h_offset += child.node.partnersWidth() + child.node.width() + Constants.margin;
+          }
         }
-      }
-      if (this.person.sex === 'M') {
-        offset = offset - this.width() / 2 + wife.node.width() / 2;
-        husband.node.setPosition(this.text.position.x - offset, y);
-        return husband.node.update();
-      } else if (this.person.sex === 'F') {
-        offset = offset + this.width() / 2 - wife.node.width() / 2;
-        wife.node.setPosition(this.text.position.x + offset, y);
+        h_offset = h_offset + this.width() / 2 - husband.node.width() / 2;
+        h_offset = Math.max(h_offset, Constants.margin);
+        husband.node.setPosition(this.text.position.x - h_offset, y);
+        husband.node.update();
+        w_offset = this.partnersWidth();
+        w_offset = w_offset + this.width() / 2 - wife.node.width() / 2;
+        w_offset = Math.max(w_offset, Constants.margin);
+        wife.node.setPosition(this.text.position.x + w_offset, y);
         return wife.node.update();
+      } else if (this.person.sex === 'F') {
+        w_offset = 0;
+        _ref1 = this.person.parentRelation.children;
+        for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
+          child = _ref1[i];
+          if (child !== this.person) {
+            w_offset += child.node.partnersWidth() + child.node.width() + Constants.margin;
+          }
+        }
+        w_offset = w_offset + this.width() / 2 - wife.node.width() / 2;
+        w_offset = Math.max(w_offset, Constants.margin);
+        wife.node.setPosition(this.text.position.x + w_offset, y);
+        wife.node.update();
+        h_offset = this.partnersWidth();
+        h_offset = h_offset + this.width() / 2 - husband.node.width() / 2;
+        h_offset = Math.max(h_offset, Constants.margin);
+        husband.node.setPosition(this.text.position.x - h_offset, y);
+        return husband.node.update();
       }
     };
 
@@ -655,7 +659,7 @@
       } else if (this.person.sex === 'F') {
         parentLimit = this.person.mother();
       }
-      parentRelationNode.vLine.position.x = this.text.position.x / 2 + parentLimit.node.text.position.x / 2;
+      parentRelationNode.vLine.position.x = (this.text.position.x + parentLimit.node.text.position.x) / 2;
       return parentRelationNode.vLine.position.y = this.graphics.position.y - Constants.baseLine - Constants.height / 2 - Constants.verticalMargin / 2;
     };
 
@@ -685,7 +689,7 @@
             child.node.setPosition(this.text.position.x - child.node.partnersWidth() - offset, y);
           }
         }
-        child.node.updateBottomPersons();
+        child.node.updateBottomPeople();
         child.node.update();
         _results.push(offset += child.node.partnersWidth() + child.node.width() + Constants.margin);
       }
