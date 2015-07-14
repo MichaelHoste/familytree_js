@@ -1,6 +1,6 @@
 class FamilyTree
 
-  constructor: (width, height, people, root, loadData = undefined, saveData = undefined) ->
+  constructor: (width, height, people = [], root = undefined, loadData = undefined, saveData = undefined) ->
     @width    = width
     @height   = height
     @people   = people
@@ -8,12 +8,21 @@ class FamilyTree
     @loadData = loadData
     @saveData = saveData
 
-    @initializeRenderer()
-    @refreshStage()
+    if $('#family-tree').length
+      @initializeRenderer()
 
-    @loadData() if @loadData
+      if @people.length == 0
+        @root = new Person('Me', 'M')
+        @people.push(@root)
 
-    @animate()
+      if @loadData
+        @loadData()
+
+      @refreshStage()
+      @refreshMenu()
+      @bindMenu()
+
+      @animate()
 
   initializeRenderer: ->
     @renderer = new PIXI.autoDetectRenderer(@width, @height, {
@@ -21,7 +30,7 @@ class FamilyTree
       backgroundColor: 0xFFFFFF
     })
 
-    $('#family_tree')[0].appendChild(@renderer.view)
+    $('#family-tree')[0].appendChild(@renderer.view)
 
   initializeBackground: ->
     @background        = PIXI.Sprite.fromImage('images/pixel.gif');
@@ -59,11 +68,64 @@ class FamilyTree
     @background.on('touchendoutside', onUp)
     @background.on('mousemove',       onMove)
 
+  bindMenu: ->
+    $('#family-tree-panel').on('click', 'li[data-action="add-partner"]', =>
+      partner = @rootNode.person.addPartner()
+      @people.push(partner)
+      @refreshStage()
+      @refreshMenu()
+    )
+
+    $('#family-tree-panel').on('click', 'li[data-action="add-parents"]', =>
+      parents = @rootNode.person.addParents()
+      @people.push(parents[0])
+      @people.push(parents[1])
+      @refreshStage()
+      @refreshMenu()
+    )
+
+    $('#family-tree-panel').on('click', 'li[data-action="add-brother"]', =>
+      brother = @rootNode.person.addBrother()
+      @people.push(brother)
+      @refreshStage()
+      @refreshMenu()
+    )
+
+    $('#family-tree-panel').on('click', 'li[data-action="add-sister"]', =>
+      sister = @rootNode.person.addSister()
+      @people.push(sister)
+      @refreshStage()
+      @refreshMenu()
+    )
+
+    $('#family-tree-panel').on('click', 'li[data-action="add-son"]', (event) =>
+      partnerUuid = $(event.target).data('with')
+      partner     = _.findWhere(@people, { uuid: partnerUuid })
+      sonName     = "Son of #{@rootNode.person.name}"
+
+      son = @rootNode.person.relationWith(partner).addChild(sonName, 'M')
+      @people.push(son)
+      @refreshStage()
+      @refreshMenu()
+    )
+
+    $('#family-tree-panel').on('click', 'li[data-action="add-daughter"]', (event) =>
+      partnerUuid  = $(event.target).data('with')
+      partner      = _.findWhere(@people, { uuid: partnerUuid })
+      daughterName = "Daughter of #{@rootNode.person.name}"
+
+      daughter = @rootNode.person.relationWith(partner).addChild(daughterName, 'F')
+      @people.push(daughter)
+      @refreshStage()
+      @refreshMenu()
+    )
+
   initializeNodes: ->
     for person in @people
       node = new PersonNode(@stage, person)
 
-      if person == @root
+      if person.uuid == @root.uuid
+        @root     = person
         @rootNode = node
         @rootNode.dirtyRoot = true
 
@@ -72,6 +134,22 @@ class FamilyTree
     @initializeBackground()
     @bindScroll()
     @initializeNodes()
+
+  refreshMenu: ->
+    $("#family-tree-panel ul").empty()
+
+    $('#family-tree-panel ul').append('<li data-action="add-partner">Add Partner</li>')
+
+    if @root.parentRelation
+      $('#family-tree-panel ul').append('<li data-action="add-brother">Add Brother</li>')
+      $('#family-tree-panel ul').append('<li data-action="add-sister">Add Sister</li>')
+
+    if !@root.parentRelation
+      $('#family-tree-panel ul').append('<li data-action="add-parents">Add Parents</li>')
+
+    for partner in @root.partners()
+      $('#family-tree-panel ul').append("<li data-action=\"add-son\"      data-with=\"#{partner.uuid}\">Add son with #{partner.name}</li>")
+      $('#family-tree-panel ul').append("<li data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">Add daughter with #{partner.name}</li>")
 
   serialize: ->
     people    = []

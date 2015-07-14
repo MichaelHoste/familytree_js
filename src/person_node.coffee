@@ -49,15 +49,18 @@ class PersonNode
   bindRectangle: ->
     @graphics.interactive = true
 
-    @graphics.on('mouseover', => $('#family_tree').css('cursor', 'pointer'))
+    @graphics.on('mouseover', => $('#family-tree').css('cursor', 'pointer'))
 
-    @graphics.on('mouseout', => $('#family_tree').css('cursor', 'default'))
+    @graphics.on('mouseout', => $('#family-tree').css('cursor', 'default'))
 
     @graphics.on('click', =>
       @stage.familyTree.rootNode.root      = false
       @stage.familyTree.rootNode.dirtyRoot = false
       @stage.familyTree.rootNode           = @
+      @stage.familyTree.root               = @person
       @dirtyRoot                           = true
+
+      @stage.familyTree.refreshMenu()
 
       @cleanTree()
       @displayTree(@stage.familyTree.x, @stage.familyTree.y)

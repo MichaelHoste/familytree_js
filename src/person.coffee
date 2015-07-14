@@ -68,6 +68,22 @@ class Person
 
     [@parentRelation.husband, @parentRelation.wife]
 
+  addBrother: (name = undefined) ->
+    name = if name then name else "Brother of #{@name}"
+
+    if @parentRelation
+      @parentRelation.addChild(name, 'M')
+    else
+      undefined
+
+  addSister: (name = undefined) ->
+    name = if name then name else "Sister of #{@name}"
+
+    if @parentRelation
+      @parentRelation.addChild(name, 'F')
+    else
+      undefined
+
   addPartner: (name = undefined) ->
     relation = new Relation()
 

@@ -25,11 +25,6 @@ $ ->
   familyTree = new FamilyTree(
     window.innerWidth,
     window.innerHeight,
-    people,
-    lisa
+    #people,
+    #lisa
   )
-
-  s = familyTree.serialize()
-  familyTree.deserialize(s)
-
-  #console.log familyTree.serialize()
