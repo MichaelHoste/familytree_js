@@ -22,10 +22,14 @@ $ ->
   # people.push(bob_marlaine[0])
   # people.push(bob_marlaine[1])
 
-  new FamilyTree(
+  familyTree = new FamilyTree(
     window.innerWidth,
     window.innerHeight,
     people,
     lisa
   )
 
+  s = familyTree.serialize()
+  familyTree.deserialize(s)
+
+  #console.log familyTree.serialize()

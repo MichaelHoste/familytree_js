@@ -5,7 +5,7 @@ class Relation
     @wife     = undefined
     @children = []
 
-    @uuid = window.uuid() if !uuid
+    @uuid = if uuid then uuid else window.uuid()
 
   addChild: (name, sex) ->
     child = new Person(name, sex)

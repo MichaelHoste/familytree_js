@@ -25,20 +25,25 @@
   })();
 
   FamilyTree = (function() {
-    function FamilyTree(width, height, people, root, callback) {
-      if (callback == null) {
-        callback = void 0;
+    function FamilyTree(width, height, people, root, loadData, saveData) {
+      if (loadData == null) {
+        loadData = void 0;
+      }
+      if (saveData == null) {
+        saveData = void 0;
       }
       this.animate = __bind(this.animate, this);
       this.width = width;
       this.height = height;
       this.people = people;
       this.root = root;
+      this.loadData = loadData;
+      this.saveData = saveData;
       this.initializeRenderer();
-      this.stage = new PIXI.Container();
-      this.initializeBackground();
-      this.bindScroll();
-      this.initializeNodes();
+      this.refreshStage();
+      if (this.loadData) {
+        this.loadData();
+      }
       this.animate();
     }
 
@@ -106,6 +111,92 @@
       return _results;
     };
 
+    FamilyTree.prototype.refreshStage = function() {
+      this.stage = new PIXI.Container();
+      this.initializeBackground();
+      this.bindScroll();
+      return this.initializeNodes();
+    };
+
+    FamilyTree.prototype.serialize = function() {
+      var partnerRelation, people, person, relations, serialization, _i, _j, _len, _len1, _ref, _ref1;
+      people = [];
+      relations = [];
+      _ref = this.people;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        person = _ref[_i];
+        people.push({
+          uuid: person.uuid,
+          name: person.name,
+          sex: person.sex
+        });
+        _ref1 = person.partnerRelations;
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          partnerRelation = _ref1[_j];
+          relations.push({
+            uuid: partnerRelation.uuid,
+            children: _.map(partnerRelation.children, function(child) {
+              return child.uuid;
+            }),
+            husband: partnerRelation.husband.uuid,
+            wife: partnerRelation.wife.uuid
+          });
+        }
+      }
+      return serialization = {
+        people: people,
+        relations: _.uniq(relations, function(relation) {
+          return relation.uuid;
+        }),
+        root: this.rootNode.person.uuid
+      };
+    };
+
+    FamilyTree.prototype.deserialize = function(serialization) {
+      var child, husband, person, relation, s_c, s_p, s_r, serialized_people, serialized_relations, serialized_root, wife, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1;
+      _ref = this.stage.children;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        child = _ref[_i];
+        this.stage.removeChild(child);
+      }
+      serialized_people = serialization.people;
+      serialized_relations = serialization.relations;
+      serialized_root = serialization.root;
+      this.people = [];
+      for (_j = 0, _len1 = serialized_people.length; _j < _len1; _j++) {
+        s_p = serialized_people[_j];
+        person = new Person(s_p.name, s_p.sex, s_p.uuid);
+        this.people.push(person);
+      }
+      for (_k = 0, _len2 = serialized_relations.length; _k < _len2; _k++) {
+        s_r = serialized_relations[_k];
+        relation = new Relation(s_r.uuid);
+        husband = _.findWhere(this.people, {
+          uuid: s_r.husband
+        });
+        relation.husband = husband;
+        husband.partnerRelations.push(relation);
+        wife = _.findWhere(this.people, {
+          uuid: s_r.wife
+        });
+        relation.wife = wife;
+        wife.partnerRelations.push(relation);
+        _ref1 = s_r.children;
+        for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+          s_c = _ref1[_l];
+          child = _.findWhere(this.people, {
+            uuid: s_c
+          });
+          child.parentRelation = relation;
+          relation.children.push(child);
+        }
+      }
+      this.root = _.findWhere(this.people, {
+        uuid: serialized_root
+      });
+      return this.refreshStage();
+    };
+
     FamilyTree.prototype.animate = function() {
       requestAnimationFrame(this.animate);
       if (this.x === void 0) {
@@ -124,9 +215,11 @@
   })();
 
   $(function() {
-    var bart, homer, jessica, kido, kido2, kido3, lisa, love, maggie, marge, milhouse, nelson, nelsonJunior, people, selma;
+    var bart, familyTree, homer, jessica, kido, kido2, kido3, lisa, love, maggie, marge, milhouse, nelson, nelsonJunior, people, s, selma;
     people = [homer = new Person('Homer', 'M'), marge = homer.addPartner('Marge Bouvier'), bart = homer.relationWith(marge).addChild('Bart', 'M'), lisa = homer.relationWith(marge).addChild('Lisa', 'F'), maggie = homer.relationWith(marge).addChild('Maggie', 'F'), jessica = bart.addPartner('Jessica', 'F'), selma = homer.addPartner('Selma Bouvier'), milhouse = lisa.addPartner('Milhouse'), nelson = lisa.addPartner('Nelson'), kido = lisa.relationWith(milhouse).addChild('Kido1', 'F'), kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), kido3 = lisa.relationWith(milhouse).addChild('Kido3', 'M'), nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M'), love = bart.relationWith(jessica).addChild('love', 'F')];
-    return new FamilyTree(window.innerWidth, window.innerHeight, people, lisa);
+    familyTree = new FamilyTree(window.innerWidth, window.innerHeight, people, lisa);
+    s = familyTree.serialize();
+    return familyTree.deserialize(s);
   });
 
   Person = (function() {
@@ -138,9 +231,7 @@
       this.sex = sex;
       this.parentRelation = void 0;
       this.partnerRelations = [];
-      if (!uuid) {
-        this.uuid = window.uuid();
-      }
+      this.uuid = uuid ? uuid : window.uuid();
     }
 
     Person.prototype.partners = function() {
@@ -749,9 +840,7 @@
       this.husband = void 0;
       this.wife = void 0;
       this.children = [];
-      if (!uuid) {
-        this.uuid = window.uuid();
-      }
+      this.uuid = uuid ? uuid : window.uuid();
     }
 
     Relation.prototype.addChild = function(name, sex) {

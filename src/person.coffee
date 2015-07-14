@@ -6,7 +6,7 @@ class Person
     @parentRelation   = undefined
     @partnerRelations = []
 
-    @uuid = window.uuid() if !uuid
+    @uuid = if uuid then uuid else window.uuid()
 
   partners: ->
     _.collect(@partnerRelations, (relation) =>
