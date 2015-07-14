@@ -25,7 +25,10 @@
   })();
 
   FamilyTree = (function() {
-    function FamilyTree(width, height, people, root) {
+    function FamilyTree(width, height, people, root, callback) {
+      if (callback == null) {
+        callback = void 0;
+      }
       this.animate = __bind(this.animate, this);
       this.width = width;
       this.height = height;
@@ -127,11 +130,17 @@
   });
 
   Person = (function() {
-    function Person(name, sex) {
+    function Person(name, sex, uuid) {
+      if (uuid == null) {
+        uuid = void 0;
+      }
       this.name = name;
       this.sex = sex;
       this.parentRelation = void 0;
       this.partnerRelations = [];
+      if (!uuid) {
+        this.uuid = window.uuid();
+      }
     }
 
     Person.prototype.partners = function() {
@@ -733,10 +742,16 @@
   })();
 
   Relation = (function() {
-    function Relation() {
+    function Relation(uuid) {
+      if (uuid == null) {
+        uuid = void 0;
+      }
       this.husband = void 0;
       this.wife = void 0;
       this.children = [];
+      if (!uuid) {
+        this.uuid = window.uuid();
+      }
     }
 
     Relation.prototype.addChild = function(name, sex) {
@@ -877,5 +892,14 @@
     fatherOfLing = selma.addPartner('Father of Ling');
     return ling = selma.relationWith(fatherOfLing).addChild('Ling', 'F');
   });
+
+  window.uuid = function() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r, v;
+      r = Math.random() * 16 | 0;
+      v = c === 'x' ? r : r & 0x3 | 0x8;
+      return v.toString(16);
+    });
+  };
 
 }).call(this);

@@ -1,10 +1,12 @@
 class Person
 
-  constructor: (name, sex) ->
+  constructor: (name, sex, uuid = undefined) ->
     @name             = name
     @sex              = sex
     @parentRelation   = undefined
     @partnerRelations = []
+
+    @uuid = window.uuid() if !uuid
 
   partners: ->
     _.collect(@partnerRelations, (relation) =>

@@ -1,6 +1,6 @@
 class FamilyTree
 
-  constructor: (width, height, people, root) ->
+  constructor: (width, height, people, root, callback = undefined) ->
     @width  = width
     @height = height
     @people = people
