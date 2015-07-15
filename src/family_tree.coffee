@@ -8,12 +8,14 @@ class FamilyTree
     @loadData = loadData
     @saveData = saveData
 
+    if @people.length == 0
+      name  = prompt("What's the first person's name?", 'Me')
+      @root = new Person(name, 'M')
+
+      @people.push(@root)
+
     if $('#family-tree').length
       @initializeRenderer()
-
-      if @people.length == 0
-        @root = new Person('Me', 'M')
-        @people.push(@root)
 
       if @loadData
         @loadData()
@@ -70,14 +72,29 @@ class FamilyTree
 
   bindMenu: ->
     $('#family-tree-panel').on('click', 'li[data-action="add-partner"]', =>
-      partner = @rootNode.person.addPartner()
+      if @root.sex == 'M'
+        suggestion = "Wife of #{@root.name}"
+      else if @root.sex == 'F'
+        suggestion = "Husband of #{@root.name}"
+
+      name = prompt("What's the partner's name?", suggestion)
+
+      @cleanTree()
+      partner = @root.addPartner(name)
       @people.push(partner)
       @refreshStage()
       @refreshMenu()
     )
 
     $('#family-tree-panel').on('click', 'li[data-action="add-parents"]', =>
-      parents = @rootNode.person.addParents()
+      father_suggestion = "Father of #{@root.name}"
+      father_name       = prompt("What's the father's name?", father_suggestion)
+
+      mother_suggestion = "Mother of #{@root.name}"
+      mother_name       = prompt("What's the mother's name?", mother_suggestion)
+
+      @cleanTree()
+      parents = @root.addParents(father_name, mother_name)
       @people.push(parents[0])
       @people.push(parents[1])
       @refreshStage()
@@ -85,37 +102,87 @@ class FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'li[data-action="add-brother"]', =>
-      brother = @rootNode.person.addBrother()
+      suggestion = "Brother of #{@root.name}"
+      name       = prompt("What's the brother's name?", suggestion)
+
+      @cleanTree()
+      brother = @root.addBrother(name)
       @people.push(brother)
       @refreshStage()
       @refreshMenu()
     )
 
     $('#family-tree-panel').on('click', 'li[data-action="add-sister"]', =>
-      sister = @rootNode.person.addSister()
+      suggestion = "Sister of #{@root.name}"
+      name       = prompt("What's the sister's name?", suggestion)
+
+      @cleanTree()
+      sister = @root.addSister(name)
       @people.push(sister)
       @refreshStage()
       @refreshMenu()
     )
 
     $('#family-tree-panel').on('click', 'li[data-action="add-son"]', (event) =>
+      suggestion = "Son of #{@root.name}"
+      name       = prompt("What's the son's name?", suggestion)
+
+      @cleanTree()
+
       partnerUuid = $(event.target).data('with')
       partner     = _.findWhere(@people, { uuid: partnerUuid })
-      sonName     = "Son of #{@rootNode.person.name}"
+      son         = @root.relationWith(partner).addChild(name, 'M')
 
-      son = @rootNode.person.relationWith(partner).addChild(sonName, 'M')
       @people.push(son)
       @refreshStage()
       @refreshMenu()
     )
 
     $('#family-tree-panel').on('click', 'li[data-action="add-daughter"]', (event) =>
+      suggestion = "Daughter of #{@root.name}"
+      name       = prompt("What's the daughter's name?", suggestion)
+
+      @cleanTree()
+
       partnerUuid  = $(event.target).data('with')
       partner      = _.findWhere(@people, { uuid: partnerUuid })
-      daughterName = "Daughter of #{@rootNode.person.name}"
+      daughter     = @root.relationWith(partner).addChild(name, 'F')
 
-      daughter = @rootNode.person.relationWith(partner).addChild(daughterName, 'F')
       @people.push(daughter)
+      @refreshStage()
+      @refreshMenu()
+    )
+
+    $('#family-tree-panel').on('click', 'li[data-action="remove"]', (event) =>
+      @cleanTree()
+
+      @people = _.without(@people, @root)
+
+      # remove person without parents
+      if !@root.partnerRelations.length
+        @root.parentRelation.children = _.without(@root.parentRelation.children, @root)
+      # remove person without children
+      else if @root.children().length == 0
+        for partnerRelation in @root.partnerRelations
+          if @root.sex == 'F'
+            partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation)
+          else if @root.sex == 'M'
+            partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation)
+
+      # new root
+      if @people.length
+        if @root.parentRelation
+          @root = @root.father()
+        else
+          if @root.sex == 'M'
+            @root = @root.partnerRelations[0].wife
+          else if @root.sex == 'F'
+            @root = @root.partnerRelations[0].husband
+      else
+        name  = prompt("What's the first person's name?", 'Me')
+        @root = new Person(name, 'M')
+        @people.push(@root)
+
       @refreshStage()
       @refreshMenu()
     )
@@ -130,7 +197,7 @@ class FamilyTree
         @rootNode.dirtyRoot = true
 
   refreshStage: ->
-    @stage = new PIXI.Container()
+    @stage = new PIXI.Container() if !@stage
     @initializeBackground()
     @bindScroll()
     @initializeNodes()
@@ -150,6 +217,17 @@ class FamilyTree
     for partner in @root.partners()
       $('#family-tree-panel ul').append("<li data-action=\"add-son\"      data-with=\"#{partner.uuid}\">Add son with #{partner.name}</li>")
       $('#family-tree-panel ul').append("<li data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">Add daughter with #{partner.name}</li>")
+
+    if !@root.partnerRelations.length || @root.children().length == 0
+      $('#family-tree-panel ul').append("<li data-action=\"remove\">Remove</li>")
+
+  cleanTree: ->
+    for person in @people
+      person.node.hideRectangle()
+      person.node.hideVLine()
+
+      for partnerRelation in person.partnerRelations
+        partnerRelation.node.hideLines()
 
   serialize: ->
     people    = []
@@ -173,7 +251,7 @@ class FamilyTree
     serialization =
       people:    people
       relations: _.uniq(relations, (relation) -> relation.uuid)
-      root:      @rootNode.person.uuid
+      root:      @root.uuid
 
   deserialize: (serialization) ->
     for child in @stage.children

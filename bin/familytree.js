@@ -26,6 +26,7 @@
 
   FamilyTree = (function() {
     function FamilyTree(width, height, people, root, loadData, saveData) {
+      var name;
       if (people == null) {
         people = [];
       }
@@ -45,12 +46,13 @@
       this.root = root;
       this.loadData = loadData;
       this.saveData = saveData;
+      if (this.people.length === 0) {
+        name = prompt("What's the first person's name?", 'Me');
+        this.root = new Person(name, 'M');
+        this.people.push(this.root);
+      }
       if ($('#family-tree').length) {
         this.initializeRenderer();
-        if (this.people.length === 0) {
-          this.root = new Person('Me', 'M');
-          this.people.push(this.root);
-        }
         if (this.loadData) {
           this.loadData();
         }
@@ -111,55 +113,112 @@
     FamilyTree.prototype.bindMenu = function() {
       var _this = this;
       $('#family-tree-panel').on('click', 'li[data-action="add-partner"]', function() {
-        var partner;
-        partner = _this.rootNode.person.addPartner();
+        var name, partner, suggestion;
+        if (_this.root.sex === 'M') {
+          suggestion = "Wife of " + _this.root.name;
+        } else if (_this.root.sex === 'F') {
+          suggestion = "Husband of " + _this.root.name;
+        }
+        name = prompt("What's the partner's name?", suggestion);
+        _this.cleanTree();
+        partner = _this.root.addPartner(name);
         _this.people.push(partner);
         _this.refreshStage();
         return _this.refreshMenu();
       });
       $('#family-tree-panel').on('click', 'li[data-action="add-parents"]', function() {
-        var parents;
-        parents = _this.rootNode.person.addParents();
+        var father_name, father_suggestion, mother_name, mother_suggestion, parents;
+        father_suggestion = "Father of " + _this.root.name;
+        father_name = prompt("What's the father's name?", father_suggestion);
+        mother_suggestion = "Mother of " + _this.root.name;
+        mother_name = prompt("What's the mother's name?", mother_suggestion);
+        _this.cleanTree();
+        parents = _this.root.addParents(father_name, mother_name);
         _this.people.push(parents[0]);
         _this.people.push(parents[1]);
         _this.refreshStage();
         return _this.refreshMenu();
       });
       $('#family-tree-panel').on('click', 'li[data-action="add-brother"]', function() {
-        var brother;
-        brother = _this.rootNode.person.addBrother();
+        var brother, name, suggestion;
+        suggestion = "Brother of " + _this.root.name;
+        name = prompt("What's the brother's name?", suggestion);
+        _this.cleanTree();
+        brother = _this.root.addBrother(name);
         _this.people.push(brother);
         _this.refreshStage();
         return _this.refreshMenu();
       });
       $('#family-tree-panel').on('click', 'li[data-action="add-sister"]', function() {
-        var sister;
-        sister = _this.rootNode.person.addSister();
+        var name, sister, suggestion;
+        suggestion = "Sister of " + _this.root.name;
+        name = prompt("What's the sister's name?", suggestion);
+        _this.cleanTree();
+        sister = _this.root.addSister(name);
         _this.people.push(sister);
         _this.refreshStage();
         return _this.refreshMenu();
       });
       $('#family-tree-panel').on('click', 'li[data-action="add-son"]', function(event) {
-        var partner, partnerUuid, son, sonName;
+        var name, partner, partnerUuid, son, suggestion;
+        suggestion = "Son of " + _this.root.name;
+        name = prompt("What's the son's name?", suggestion);
+        _this.cleanTree();
         partnerUuid = $(event.target).data('with');
         partner = _.findWhere(_this.people, {
           uuid: partnerUuid
         });
-        sonName = "Son of " + _this.rootNode.person.name;
-        son = _this.rootNode.person.relationWith(partner).addChild(sonName, 'M');
+        son = _this.root.relationWith(partner).addChild(name, 'M');
         _this.people.push(son);
         _this.refreshStage();
         return _this.refreshMenu();
       });
-      return $('#family-tree-panel').on('click', 'li[data-action="add-daughter"]', function(event) {
-        var daughter, daughterName, partner, partnerUuid;
+      $('#family-tree-panel').on('click', 'li[data-action="add-daughter"]', function(event) {
+        var daughter, name, partner, partnerUuid, suggestion;
+        suggestion = "Daughter of " + _this.root.name;
+        name = prompt("What's the daughter's name?", suggestion);
+        _this.cleanTree();
         partnerUuid = $(event.target).data('with');
         partner = _.findWhere(_this.people, {
           uuid: partnerUuid
         });
-        daughterName = "Daughter of " + _this.rootNode.person.name;
-        daughter = _this.rootNode.person.relationWith(partner).addChild(daughterName, 'F');
+        daughter = _this.root.relationWith(partner).addChild(name, 'F');
         _this.people.push(daughter);
+        _this.refreshStage();
+        return _this.refreshMenu();
+      });
+      return $('#family-tree-panel').on('click', 'li[data-action="remove"]', function(event) {
+        var name, partnerRelation, _i, _len, _ref;
+        _this.cleanTree();
+        _this.people = _.without(_this.people, _this.root);
+        if (!_this.root.partnerRelations.length) {
+          _this.root.parentRelation.children = _.without(_this.root.parentRelation.children, _this.root);
+        } else if (_this.root.children().length === 0) {
+          _ref = _this.root.partnerRelations;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            partnerRelation = _ref[_i];
+            if (_this.root.sex === 'F') {
+              partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation);
+            } else if (_this.root.sex === 'M') {
+              partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation);
+            }
+          }
+        }
+        if (_this.people.length) {
+          if (_this.root.parentRelation) {
+            _this.root = _this.root.father();
+          } else {
+            if (_this.root.sex === 'M') {
+              _this.root = _this.root.partnerRelations[0].wife;
+            } else if (_this.root.sex === 'F') {
+              _this.root = _this.root.partnerRelations[0].husband;
+            }
+          }
+        } else {
+          name = prompt("What's the first person's name?", 'Me');
+          _this.root = new Person(name, 'M');
+          _this.people.push(_this.root);
+        }
         _this.refreshStage();
         return _this.refreshMenu();
       });
@@ -184,14 +243,16 @@
     };
 
     FamilyTree.prototype.refreshStage = function() {
-      this.stage = new PIXI.Container();
+      if (!this.stage) {
+        this.stage = new PIXI.Container();
+      }
       this.initializeBackground();
       this.bindScroll();
       return this.initializeNodes();
     };
 
     FamilyTree.prototype.refreshMenu = function() {
-      var partner, _i, _len, _ref, _results;
+      var partner, _i, _len, _ref;
       $("#family-tree-panel ul").empty();
       $('#family-tree-panel ul').append('<li data-action="add-partner">Add Partner</li>');
       if (this.root.parentRelation) {
@@ -202,11 +263,34 @@
         $('#family-tree-panel ul').append('<li data-action="add-parents">Add Parents</li>');
       }
       _ref = this.root.partners();
-      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         partner = _ref[_i];
         $('#family-tree-panel ul').append("<li data-action=\"add-son\"      data-with=\"" + partner.uuid + "\">Add son with " + partner.name + "</li>");
-        _results.push($('#family-tree-panel ul').append("<li data-action=\"add-daughter\" data-with=\"" + partner.uuid + "\">Add daughter with " + partner.name + "</li>"));
+        $('#family-tree-panel ul').append("<li data-action=\"add-daughter\" data-with=\"" + partner.uuid + "\">Add daughter with " + partner.name + "</li>");
+      }
+      if (!this.root.partnerRelations.length || this.root.children().length === 0) {
+        return $('#family-tree-panel ul').append("<li data-action=\"remove\">Remove</li>");
+      }
+    };
+
+    FamilyTree.prototype.cleanTree = function() {
+      var partnerRelation, person, _i, _len, _ref, _results;
+      _ref = this.people;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        person = _ref[_i];
+        person.node.hideRectangle();
+        person.node.hideVLine();
+        _results.push((function() {
+          var _j, _len1, _ref1, _results1;
+          _ref1 = person.partnerRelations;
+          _results1 = [];
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            partnerRelation = _ref1[_j];
+            _results1.push(partnerRelation.node.hideLines());
+          }
+          return _results1;
+        })());
       }
       return _results;
     };
@@ -241,7 +325,7 @@
         relations: _.uniq(relations, function(relation) {
           return relation.uuid;
         }),
-        root: this.rootNode.person.uuid
+        root: this.root.uuid
       };
     };
 
@@ -310,7 +394,7 @@
   $(function() {
     var bart, familyTree, homer, jessica, kido, kido2, kido3, lisa, love, maggie, marge, milhouse, nelson, nelsonJunior, people, selma;
     people = [homer = new Person('Homer', 'M'), marge = homer.addPartner('Marge Bouvier'), bart = homer.relationWith(marge).addChild('Bart', 'M'), lisa = homer.relationWith(marge).addChild('Lisa', 'F'), maggie = homer.relationWith(marge).addChild('Maggie', 'F'), jessica = bart.addPartner('Jessica', 'F'), selma = homer.addPartner('Selma Bouvier'), milhouse = lisa.addPartner('Milhouse'), nelson = lisa.addPartner('Nelson'), kido = lisa.relationWith(milhouse).addChild('Kido1', 'F'), kido2 = lisa.relationWith(milhouse).addChild('Kido2', 'M'), kido3 = lisa.relationWith(milhouse).addChild('Kido3', 'M'), nelsonJunior = lisa.relationWith(nelson).addChild('Nelson Junior', 'M'), love = bart.relationWith(jessica).addChild('love', 'F')];
-    return familyTree = new FamilyTree(window.innerWidth, window.innerHeight);
+    return familyTree = new FamilyTree(window.innerWidth, window.innerHeight, people, lisa);
   });
 
   Person = (function() {
@@ -521,7 +605,9 @@
         _this.stage.familyTree.root = _this.person;
         _this.dirtyRoot = true;
         _this.stage.familyTree.refreshMenu();
-        _this.cleanTree();
+        _this.stage.familyTree.cleanTree();
+        _this.stage.familyTree.x = _this.stage.familyTree.width / 2;
+        _this.stage.familyTree.y = _this.stage.familyTree.height / 2;
         return _this.displayTree(_this.stage.familyTree.x, _this.stage.familyTree.y);
       });
       this.graphics.on('mousedown', this.stage.background._events.mousedown.fn);
@@ -592,28 +678,6 @@
       if (this.vLine) {
         return this.vLine.position.y = -1000;
       }
-    };
-
-    PersonNode.prototype.cleanTree = function() {
-      var partnerRelation, person, _i, _len, _ref, _results;
-      _ref = this.stage.familyTree.people;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        person = _ref[_i];
-        person.node.hideRectangle();
-        person.node.hideVLine();
-        _results.push((function() {
-          var _j, _len1, _ref1, _results1;
-          _ref1 = person.partnerRelations;
-          _results1 = [];
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            partnerRelation = _ref1[_j];
-            _results1.push(partnerRelation.node.hideLines());
-          }
-          return _results1;
-        })());
-      }
-      return _results;
     };
 
     PersonNode.prototype.displayTree = function(x, y) {

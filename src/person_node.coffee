@@ -62,7 +62,9 @@ class PersonNode
 
       @stage.familyTree.refreshMenu()
 
-      @cleanTree()
+      @stage.familyTree.cleanTree()
+      @stage.familyTree.x = @stage.familyTree.width  / 2
+      @stage.familyTree.y = @stage.familyTree.height / 2
       @displayTree(@stage.familyTree.x, @stage.familyTree.y)
     )
 
@@ -115,14 +117,6 @@ class PersonNode
   hideVLine: ->
     @vLine.position.x  = -1000 if @vLine
     @vLine.position.y  = -1000 if @vLine
-
-  cleanTree: ->
-    for person in @stage.familyTree.people
-      person.node.hideRectangle()
-      person.node.hideVLine()
-
-      for partnerRelation in person.partnerRelations
-        partnerRelation.node.hideLines()
 
   displayTree: (x, y) ->
     @root = true
