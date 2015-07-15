@@ -191,9 +191,7 @@
         var name, partnerRelation, _i, _len, _ref;
         _this.cleanTree();
         _this.people = _.without(_this.people, _this.root);
-        if (!_this.root.partnerRelations.length) {
-          _this.root.parentRelation.children = _.without(_this.root.parentRelation.children, _this.root);
-        } else if (_this.root.children().length === 0) {
+        if (_this.root.parents().length === 0) {
           _ref = _this.root.partnerRelations;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             partnerRelation = _ref[_i];
@@ -203,6 +201,8 @@
               partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation);
             }
           }
+        } else if (_this.root.children().length === 0) {
+          _this.root.parentRelation.children = _.without(_this.root.parentRelation.children, _this.root);
         }
         if (_this.people.length) {
           if (_this.root.parentRelation) {

@@ -158,16 +158,16 @@ class FamilyTree
 
       @people = _.without(@people, @root)
 
-      # remove person without parents
-      if !@root.partnerRelations.length
-        @root.parentRelation.children = _.without(@root.parentRelation.children, @root)
-      # remove person without children
-      else if @root.children().length == 0
+      # remove person without parent
+      if @root.parents().length == 0
         for partnerRelation in @root.partnerRelations
           if @root.sex == 'F'
             partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation)
           else if @root.sex == 'M'
             partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation)
+      # remove person without children
+      else if @root.children().length == 0
+        @root.parentRelation.children = _.without(@root.parentRelation.children, @root)
 
       # new root
       if @people.length
