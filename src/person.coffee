@@ -1,4 +1,4 @@
-class Person
+class @Person
 
   constructor: (name, sex, uuid = undefined) ->
     @name             = name

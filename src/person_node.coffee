@@ -1,4 +1,4 @@
-class PersonNode
+class @PersonNode
 
   constructor: (stage, person) ->
     @stage  = stage

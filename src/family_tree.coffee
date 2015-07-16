@@ -1,4 +1,4 @@
-class FamilyTree
+class @FamilyTree
 
   constructor: (width, height, people = [], root = undefined, loadData = undefined, saveData = undefined) ->
     @width    = width

@@ -1,4 +1,4 @@
-class Relation
+class @Relation
 
   constructor: (uuid = undefined) ->
     @husband  = undefined

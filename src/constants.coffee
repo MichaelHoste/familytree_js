@@ -1,4 +1,4 @@
-class Constants
+class @Constants
 
   @height         = 40
   @padding        = 20

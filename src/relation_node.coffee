@@ -1,4 +1,4 @@
-class RelationNode
+class @RelationNode
 
   constructor: (stage, relation) ->
     @stage    = stage
