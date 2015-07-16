@@ -23,6 +23,8 @@ class PersonNode
     for partnerRelation in @person.partnerRelations
       if partnerRelation.node == undefined
         new RelationNode(@stage, partnerRelation)
+      else
+        partnerRelation.node.initializeLines()
 
   initializeRectangle: ->
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB

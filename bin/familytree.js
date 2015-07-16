@@ -246,6 +246,11 @@
       if (!this.stage) {
         this.stage = new PIXI.Container();
       }
+      console.log(this.stage.children.length);
+      while (this.stage.children.length > 0) {
+        this.stage.removeChild(this.stage.children[0]);
+      }
+      console.log(this.stage.children.length);
       this.initializeBackground();
       this.bindScroll();
       return this.initializeNodes();
@@ -563,7 +568,7 @@
         if (partnerRelation.node === void 0) {
           _results.push(new RelationNode(this.stage, partnerRelation));
         } else {
-          _results.push(void 0);
+          _results.push(partnerRelation.node.initializeLines());
         }
       }
       return _results;
@@ -1041,10 +1046,14 @@
       this.stage = stage;
       this.relation = relation;
       this.relation.node = this;
+      this.initializeLines();
+    }
+
+    RelationNode.prototype.initializeLines = function() {
       this.initializeHLine();
       this.initializeVLine();
-      this.initializeChildrenHLine();
-    }
+      return this.initializeChildrenHLine();
+    };
 
     RelationNode.prototype.initializeHLine = function() {
       this.hLineStartX = 0;

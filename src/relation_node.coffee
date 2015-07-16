@@ -6,6 +6,9 @@ class RelationNode
 
     @relation.node = this
 
+    @initializeLines()
+
+  initializeLines: ->
     @initializeHLine()
     @initializeVLine()
     @initializeChildrenHLine()

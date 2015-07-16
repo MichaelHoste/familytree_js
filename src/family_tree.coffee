@@ -198,6 +198,14 @@ class FamilyTree
 
   refreshStage: ->
     @stage = new PIXI.Container() if !@stage
+
+    console.log @stage.children.length
+
+    while @stage.children.length > 0
+      @stage.removeChild(@stage.children[0])
+
+    console.log @stage.children.length
+
     @initializeBackground()
     @bindScroll()
     @initializeNodes()
