@@ -1,11 +1,10 @@
 class @FamilyTree
 
-  constructor: (width, height, people = [], root = undefined, loadData = undefined, saveData = undefined) ->
+  constructor: (width, height, people = [], root = undefined, saveData = undefined) ->
     @width    = width
     @height   = height
     @people   = people
     @root     = root
-    @loadData = loadData
     @saveData = saveData
 
     if @people.length == 0
@@ -16,9 +15,6 @@ class @FamilyTree
 
     if $('#family-tree').length
       @initializeRenderer()
-
-      if @loadData
-        @loadData()
 
       @refreshStage()
       @refreshMenu()
@@ -71,7 +67,7 @@ class @FamilyTree
     @background.on('mousemove',       onMove)
 
   bindMenu: ->
-    $('#family-tree-panel').on('click', 'li[data-action="add-partner"]', =>
+    $('#family-tree-panel').on('click', 'button[data-action="add-partner"]', =>
       if @root.sex == 'M'
         suggestion = "Wife of #{@root.name}"
       else if @root.sex == 'F'
@@ -84,9 +80,10 @@ class @FamilyTree
       @people.push(partner)
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
-    $('#family-tree-panel').on('click', 'li[data-action="add-parents"]', =>
+    $('#family-tree-panel').on('click', 'button[data-action="add-parents"]', =>
       father_suggestion = "Father of #{@root.name}"
       father_name       = prompt("What's the father's name?", father_suggestion)
 
@@ -99,9 +96,10 @@ class @FamilyTree
       @people.push(parents[1])
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
-    $('#family-tree-panel').on('click', 'li[data-action="add-brother"]', =>
+    $('#family-tree-panel').on('click', 'button[data-action="add-brother"]', =>
       suggestion = "Brother of #{@root.name}"
       name       = prompt("What's the brother's name?", suggestion)
 
@@ -110,9 +108,10 @@ class @FamilyTree
       @people.push(brother)
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
-    $('#family-tree-panel').on('click', 'li[data-action="add-sister"]', =>
+    $('#family-tree-panel').on('click', 'button[data-action="add-sister"]', =>
       suggestion = "Sister of #{@root.name}"
       name       = prompt("What's the sister's name?", suggestion)
 
@@ -121,9 +120,10 @@ class @FamilyTree
       @people.push(sister)
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
-    $('#family-tree-panel').on('click', 'li[data-action="add-son"]', (event) =>
+    $('#family-tree-panel').on('click', 'button[data-action="add-son"]', (event) =>
       suggestion = "Son of #{@root.name}"
       name       = prompt("What's the son's name?", suggestion)
 
@@ -136,9 +136,10 @@ class @FamilyTree
       @people.push(son)
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
-    $('#family-tree-panel').on('click', 'li[data-action="add-daughter"]', (event) =>
+    $('#family-tree-panel').on('click', 'button[data-action="add-daughter"]', (event) =>
       suggestion = "Daughter of #{@root.name}"
       name       = prompt("What's the daughter's name?", suggestion)
 
@@ -151,9 +152,10 @@ class @FamilyTree
       @people.push(daughter)
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
-    $('#family-tree-panel').on('click', 'li[data-action="remove"]', (event) =>
+    $('#family-tree-panel').on('click', 'button[data-action="remove"]', (event) =>
       @cleanTree()
 
       @people = _.without(@people, @root)
@@ -185,6 +187,7 @@ class @FamilyTree
 
       @refreshStage()
       @refreshMenu()
+      @save()
     )
 
   initializeNodes: ->
@@ -211,23 +214,22 @@ class @FamilyTree
     @initializeNodes()
 
   refreshMenu: ->
-    $("#family-tree-panel ul").empty()
-
-    $('#family-tree-panel ul').append('<li data-action="add-partner">Add Partner</li>')
+    $("#family-tree-panel div").empty()
+    $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">Add Partner</button>')
 
     if @root.parentRelation
-      $('#family-tree-panel ul').append('<li data-action="add-brother">Add Brother</li>')
-      $('#family-tree-panel ul').append('<li data-action="add-sister">Add Sister</li>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">Add Brother</button>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">Add Sister</button>')
 
     if !@root.parentRelation
-      $('#family-tree-panel ul').append('<li data-action="add-parents">Add Parents</li>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">Add Parents</button>')
 
     for partner in @root.partners()
-      $('#family-tree-panel ul').append("<li data-action=\"add-son\"      data-with=\"#{partner.uuid}\">Add son with #{partner.name}</li>")
-      $('#family-tree-panel ul').append("<li data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">Add daughter with #{partner.name}</li>")
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"#{partner.uuid}\">Add son with #{partner.name}</button>")
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">Add daughter with #{partner.name}</button>")
 
     if !@root.partnerRelations.length || @root.children().length == 0
-      $('#family-tree-panel ul').append("<li data-action=\"remove\">Remove</li>")
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">Remove</button>")
 
   cleanTree: ->
     for person in @people
@@ -265,42 +267,48 @@ class @FamilyTree
     for child in @stage.children
       @stage.removeChild(child)
 
-    serialized_people    = serialization.people
-    serialized_relations = serialization.relations
-    serialized_root      = serialization.root
+    serializedPeople    = serialization.people
+    serializedRelations = serialization.relations
+    serializedRoot      = serialization.root
 
     @people = []
 
     # create people
-    for s_p in serialized_people
-      person = new Person(s_p.name, s_p.sex, s_p.uuid)
+    for sP in serializedPeople
+      person = new Person(sP.name, sP.sex, sP.uuid)
       @people.push(person)
 
     # create and link relations
-    for s_r in serialized_relations
-      relation = new Relation(s_r.uuid)
+    for sR in serializedRelations
+      relation = new Relation(sR.uuid)
 
       # create husband
-      husband          = _.findWhere(@people, { uuid: s_r.husband })
+      husband          = _.findWhere(@people, { uuid: sR.husband })
       relation.husband = husband
       husband.partnerRelations.push(relation)
 
       # create wife
-      wife          = _.findWhere(@people, { uuid: s_r.wife })
+      wife          = _.findWhere(@people, { uuid: sR.wife })
       relation.wife = wife
       wife.partnerRelations.push(relation)
 
       # create children
-      for s_c in s_r.children
-        child = _.findWhere(@people, { uuid: s_c })
+      for sC in sR.children
+        child = _.findWhere(@people, { uuid: sC })
         child.parentRelation = relation
         relation.children.push(child)
 
     # Create root
-    @root = _.findWhere(@people, { uuid: serialized_root })
+    @root = _.findWhere(@people, { uuid: serializedRoot })
 
     # Reinitialize screen
     @refreshStage()
+
+  save: ->
+    @saveData(@serialize()) if @saveData
+
+  loadData: (data) ->
+    @deserialize(serializedData)
 
   animate: =>
     requestAnimationFrame(@animate)

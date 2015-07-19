@@ -8,7 +8,21 @@
     <meta name="description" content="Family Tree Creation Libray using Canvas 2D and JavaScript (CoffeeScript)">
     <meta name="author" content="Michaël Hoste, Aurelien Malisart">
 
-    <link href="style.css" type="text/css" rel="stylesheet" >
+    <style>
+      #family-tree-panel {
+        width: 200px;
+        height: 100%;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        border-right: 1px solid;
+      }
+
+      button {
+        display: block;
+      }
+    </style>
+
     <!--
     <link href='http://fonts.googleapis.com/css?family=PT+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
     -->
@@ -47,11 +61,10 @@
 
     </div>
 
-    <div id="family-tree-panel"
-         style="width: 200px;height: 100%;position:absolute;left: 0px; top: 0px;border-right:1px solid">
-      <ul>
+    <div id="family-tree-panel">
+      <div class="btn-group-vertical" role="group">
 
-      </ul>
+      </div>
     </div>
 
     <div style="clear:both"></div>

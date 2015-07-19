@@ -30,18 +30,13 @@ class @PersonNode
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
 
     @graphics = new PIXI.Graphics()
-
-    if @root
-      @graphics.lineStyle(Constants.lineWidth, 0x999999, 1)
-    else
-      @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
-
+    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
     @graphics.beginFill(color)
 
     if @person.sex == 'M'
-      @graphics.drawRect(0, 0, 200, Constants.height)
+      @graphics.drawRect(0, 0, Constants.width, Constants.height)
     else
-      @graphics.drawRoundedRect(0, 0, 200, Constants.height, Constants.height/5)
+      @graphics.drawRoundedRect(0, 0, Constants.width, Constants.height, Constants.height/4)
 
     @graphics.position.x = -1000
     @graphics.position.y = -1000
@@ -78,7 +73,10 @@ class @PersonNode
     @graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
 
   initializeText: ->
-    @text = new PIXI.Text(@person.name, { font : "#{Constants.fontSize}px Arial", fill : 0x222222 })
+    @text = new PIXI.Text(@person.name,
+      font : "#{Constants.fontSize}px Arial"
+      fill : 0x222222
+    )
     @text.position.x = -1000
     @text.position.y = -1000
     @text.anchor.x   = 0.5
