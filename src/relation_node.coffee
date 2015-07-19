@@ -14,7 +14,6 @@ class @RelationNode
     @initializeChildrenHLine()
 
   initializeHLine: ->
-    console.log 'initializeHLine'
     @hLineStartX = 0
     @hLineEndX   = 0
     @hLineY      = 0

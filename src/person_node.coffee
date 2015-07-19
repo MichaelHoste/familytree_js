@@ -95,30 +95,31 @@ class @PersonNode
     @graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
     @graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
 
-  setPosition: (x, y) ->
+  setPosition: (x, y, apply = true) ->
     @x = x
     @y = y
 
-    # Rectangle
-    @graphics.position.x = x
-    @graphics.position.y = y
+    if apply
+      # Rectangle
+      @graphics.position.x = x
+      @graphics.position.y = y
 
-    # Text
-    @text.position.x = x
-    @text.position.y = y
+      # Text
+      @text.position.x = x
+      @text.position.y = y
 
-    # Parent line
-    if @person.parentRelation
-      @vLine.position.x = x
-      @vLine.position.y = y - Constants.height / 2
+      # Parent line
+      if @person.parentRelation
+        @vLine.position.x = x
+        @vLine.position.y = y - Constants.height / 2
 
   # leftmost node (in himself, relations or children)
   leftMostNode: ->
     if @person.partnerRelations.length
-      xArray       = _.collect(@person.partnerRelations[0].children, (child) -> child.node.leftMostNode())
-      partnerType = if @person.sex == 'M' then 'husband' else 'wife'
+      xArray      = _.collect(@person.partnerRelations[0].children, (child) -> child.node.leftMostNode())
+      partnerType = if @person.sex == 'M' then 'wife' else 'husband'
       partner     = @person.partnerRelations[0][partnerType]
-      xArray.push(partner)
+      xArray.push(partner.node.x)
     else
       xArray = []
 
@@ -128,10 +129,10 @@ class @PersonNode
   # leftmost node (in himself, relations or children)
   rightMostNode: ->
     if @person.partnerRelations.length
-      xArray       = _.collect(@person.partnerRelations[0].children, (child) -> child.node.rightMostNode())
-      partnerType = if @person.sex == 'M' then 'husband' else 'wife'
+      xArray      = _.collect(@person.partnerRelations[0].children, (child) -> child.node.rightMostNode())
+      partnerType = if @person.sex == 'M' then 'wife' else 'husband'
       partner     = @person.partnerRelations[0][partnerType]
-      xArray.push(partner)
+      xArray.push(partner.node.x)
     else
       xArray = []
 
@@ -172,7 +173,7 @@ class @PersonNode
       @updateParentsPosition(y)
       @drawParentsHLine(y)
       #@updateParentsVLinePosition()
-      @updateParentsChildrenPositions()
+      @updateSiblingsPositions()
       # @drawParentsChildrenHLine(y)
 
       # if @person.parentRelation
@@ -213,12 +214,20 @@ class @PersonNode
         start = (husband.node.x + wife.node.x) / 2
 
         if children.length > 1
-          childrenSize = children.length * Constants.width + (children.length-1) * Constants.margin
-          start        = start + Constants.width / 2 - childrenSize / 2
+          childrenSize = partnerRelation.node.globalWidth()
+          console.log childrenSize
+          start        = start - childrenSize / 2 + Constants.width / 2
 
-        for child in children
-          child.node.setPosition(start, @y + Constants.height / 2 + Constants.verticalMargin)
-          start = start + Constants.width + Constants.margin
+        for child, i in children
+          offset = child.node.x - child.node.leftMostNode()
+
+          child.node.setPosition(start + offset, @y + Constants.height / 2 + Constants.verticalMargin)
+          child.node.updateBottomPeople()
+
+          if child.partnerRelations.length
+            start = start + child.partnerRelations[0].node.globalWidth() + Constants.margin
+          else
+            start = start + Constants.width + Constants.margin
 
   drawHorizontalLineBetweenChildren: ->
     for partnerRelation, i in @person.partnerRelations
@@ -237,8 +246,8 @@ class @PersonNode
         children = partnerRelation.children
 
         if children.length
-          startX   = children[0].node.x
-          endX     = _.last(children).node.x
+          startX = partnerRelation.husband.node.x
+          endX   = partnerRelation.wife.node.x
 
           partnerRelation.node.vLine.position.x = (startX + endX) / 2
           partnerRelation.node.vLine.position.y = @y + Constants.verticalMargin / 4
@@ -275,13 +284,39 @@ class @PersonNode
       parentRelationNode.vLine.position.x = @vLine.position.x
       parentRelationNode.vLine.position.y = @y - Constants.height / 2 - Constants.verticalMargin / 2 + Constants.lineWidth
 
-  updateParentsChildrenPositions: ->
+  updateSiblingsPositions: ->
     children    = @person.parentRelation.children
     personIndex = _.findIndex(children, @person)
 
-    offset = 0
+    # Update positions of sibblings (to know the global size of this part)
+    for child, i in children
+      if i != personIndex
+        child.node.setPosition(@x - 1000, @y)
+        child.node.updateBottomPeople()
 
-    console.log @size()
+    # Display left siblings and descendants
+    leftDistance = @x - @leftMostNode()  + Constants.width / 2
+    offset       = 0
+
+    for i in [0..personIndex]
+      if i != personIndex
+        child = children[i]
+        childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2
+        child.node.setPosition(@x - (leftDistance + childrenRightDistance + Constants.margin + offset), @y)
+        child.node.updateBottomPeople()
+        offset = offset + child.node.size() + Constants.margin
+
+    # Display right siblings and descendants
+    rightDistance = @rightMostNode() - @x + Constants.width / 2
+    offset        = 0
+
+    for i in [personIndex..children.length-1]
+      if i != personIndex
+        child = children[i]
+        childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2
+        child.node.setPosition(@x + (rightDistance + childrenLeftDistance + Constants.margin + offset), @y)
+        child.node.updateBottomPeople()
+        offset = offset + child.node.size() + Constants.margin
 
   drawParentsChildrenHLine: (y) ->
     parentRelationNode = @person.parentRelation.node

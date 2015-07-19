@@ -657,16 +657,21 @@
       return this.graphics.on('touchendoutside', this.stage.background._events.touchendoutside.fn);
     };
 
-    PersonNode.prototype.setPosition = function(x, y) {
+    PersonNode.prototype.setPosition = function(x, y, apply) {
+      if (apply == null) {
+        apply = true;
+      }
       this.x = x;
       this.y = y;
-      this.graphics.position.x = x;
-      this.graphics.position.y = y;
-      this.text.position.x = x;
-      this.text.position.y = y;
-      if (this.person.parentRelation) {
-        this.vLine.position.x = x;
-        return this.vLine.position.y = y - Constants.height / 2;
+      if (apply) {
+        this.graphics.position.x = x;
+        this.graphics.position.y = y;
+        this.text.position.x = x;
+        this.text.position.y = y;
+        if (this.person.parentRelation) {
+          this.vLine.position.x = x;
+          return this.vLine.position.y = y - Constants.height / 2;
+        }
       }
     };
 
@@ -676,9 +681,9 @@
         xArray = _.collect(this.person.partnerRelations[0].children, function(child) {
           return child.node.leftMostNode();
         });
-        partnerType = this.person.sex === 'M' ? 'husband' : 'wife';
+        partnerType = this.person.sex === 'M' ? 'wife' : 'husband';
         partner = this.person.partnerRelations[0][partnerType];
-        xArray.push(partner);
+        xArray.push(partner.node.x);
       } else {
         xArray = [];
       }
@@ -692,9 +697,9 @@
         xArray = _.collect(this.person.partnerRelations[0].children, function(child) {
           return child.node.rightMostNode();
         });
-        partnerType = this.person.sex === 'M' ? 'husband' : 'wife';
+        partnerType = this.person.sex === 'M' ? 'wife' : 'husband';
         partner = this.person.partnerRelations[0][partnerType];
-        xArray.push(partner);
+        xArray.push(partner.node.x);
       } else {
         xArray = [];
       }
@@ -743,7 +748,7 @@
         y = this.y - Constants.verticalMargin - Constants.height / 2;
         this.updateParentsPosition(y);
         this.drawParentsHLine(y);
-        return this.updateParentsChildrenPositions();
+        return this.updateSiblingsPositions();
       }
     };
 
@@ -797,7 +802,7 @@
     };
 
     PersonNode.prototype.updateChildrenPositions = function() {
-      var child, children, childrenSize, husband, i, partnerRelation, start, wife, _i, _len, _ref, _results;
+      var child, children, childrenSize, husband, i, offset, partnerRelation, start, wife, _i, _len, _ref, _results;
       _ref = this.person.partnerRelations;
       _results = [];
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
@@ -808,16 +813,23 @@
           children = partnerRelation.children;
           start = (husband.node.x + wife.node.x) / 2;
           if (children.length > 1) {
-            childrenSize = children.length * Constants.width + (children.length - 1) * Constants.margin;
-            start = start + Constants.width / 2 - childrenSize / 2;
+            childrenSize = partnerRelation.node.globalWidth();
+            console.log(childrenSize);
+            start = start - childrenSize / 2 + Constants.width / 2;
           }
           _results.push((function() {
             var _j, _len1, _results1;
             _results1 = [];
-            for (_j = 0, _len1 = children.length; _j < _len1; _j++) {
-              child = children[_j];
-              child.node.setPosition(start, this.y + Constants.height / 2 + Constants.verticalMargin);
-              _results1.push(start = start + Constants.width + Constants.margin);
+            for (i = _j = 0, _len1 = children.length; _j < _len1; i = ++_j) {
+              child = children[i];
+              offset = child.node.x - child.node.leftMostNode();
+              child.node.setPosition(start + offset, this.y + Constants.height / 2 + Constants.verticalMargin);
+              child.node.updateBottomPeople();
+              if (child.partnerRelations.length) {
+                _results1.push(start = start + child.partnerRelations[0].node.globalWidth() + Constants.margin);
+              } else {
+                _results1.push(start = start + Constants.width + Constants.margin);
+              }
             }
             return _results1;
           }).call(this));
@@ -860,8 +872,8 @@
         if (i === 0) {
           children = partnerRelation.children;
           if (children.length) {
-            startX = children[0].node.x;
-            endX = _.last(children).node.x;
+            startX = partnerRelation.husband.node.x;
+            endX = partnerRelation.wife.node.x;
             partnerRelation.node.vLine.position.x = (startX + endX) / 2;
             _results.push(partnerRelation.node.vLine.position.y = this.y + Constants.verticalMargin / 4);
           } else {
@@ -910,12 +922,43 @@
       }
     };
 
-    PersonNode.prototype.updateParentsChildrenPositions = function() {
-      var children, offset, personIndex;
+    PersonNode.prototype.updateSiblingsPositions = function() {
+      var child, children, childrenLeftDistance, childrenRightDistance, i, leftDistance, offset, personIndex, rightDistance, _i, _j, _k, _len, _ref, _results;
       children = this.person.parentRelation.children;
       personIndex = _.findIndex(children, this.person);
+      for (i = _i = 0, _len = children.length; _i < _len; i = ++_i) {
+        child = children[i];
+        if (i !== personIndex) {
+          child.node.setPosition(this.x - 1000, this.y);
+          child.node.updateBottomPeople();
+        }
+      }
+      leftDistance = this.x - this.leftMostNode() + Constants.width / 2;
       offset = 0;
-      return console.log(this.size());
+      for (i = _j = 0; 0 <= personIndex ? _j <= personIndex : _j >= personIndex; i = 0 <= personIndex ? ++_j : --_j) {
+        if (i !== personIndex) {
+          child = children[i];
+          childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2;
+          child.node.setPosition(this.x - (leftDistance + childrenRightDistance + Constants.margin + offset), this.y);
+          child.node.updateBottomPeople();
+          offset = offset + child.node.size() + Constants.margin;
+        }
+      }
+      rightDistance = this.rightMostNode() - this.x + Constants.width / 2;
+      offset = 0;
+      _results = [];
+      for (i = _k = personIndex, _ref = children.length - 1; personIndex <= _ref ? _k <= _ref : _k >= _ref; i = personIndex <= _ref ? ++_k : --_k) {
+        if (i !== personIndex) {
+          child = children[i];
+          childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2;
+          child.node.setPosition(this.x + (rightDistance + childrenLeftDistance + Constants.margin + offset), this.y);
+          child.node.updateBottomPeople();
+          _results.push(offset = offset + child.node.size() + Constants.margin);
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
     };
 
     PersonNode.prototype.drawParentsChildrenHLine = function(y) {
@@ -974,7 +1017,6 @@
     };
 
     RelationNode.prototype.initializeHLine = function() {
-      console.log('initializeHLine');
       this.hLineStartX = 0;
       this.hLineEndX = 0;
       this.hLineY = 0;
