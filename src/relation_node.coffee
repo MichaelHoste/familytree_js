@@ -14,6 +14,7 @@ class @RelationNode
     @initializeChildrenHLine()
 
   initializeHLine: ->
+    console.log 'initializeHLine'
     @hLineStartX = 0
     @hLineEndX   = 0
     @hLineY      = 0
@@ -39,30 +40,23 @@ class @RelationNode
   globalWidth: ->
     Math.max(@relationWidth(), @childrenWidth())
 
-  lineWidth: ->
-    @globalWidth() - @relation.husband.node.width() - @relation.wife.node.width()
+  # lineWidth: ->
+  #   @globalWidth() - @relation.husband.node.width() - @relation.wife.node.width()
 
   relationWidth: ->
-    size =  @relation.husband.node.width()
-    size += @relation.wife.node.width()
-    size += Constants.margin
-
-    # TODO : DEBUG
-    #size += Constants.margin * 2 if @relation.wife.partnerRelations.length > 1
-
-    size
+    2 * Constants.width + Constants.margin
 
   childrenWidth: ->
     # add relations of children and take size into account
     size = 0
     for child in @relation.children
       if child.partnerRelations.length > 0
-        size += child.node.width()
+        size += Constants.width
 
         for partnerRelation in child.partnerRelations
-          size += partnerRelation.node.globalWidth() - child.node.width()
+          size += partnerRelation.node.globalWidth() - Constants.width
       else
-        size += child.node.width()
+        size += Constants.width
       size += Constants.margin
 
     size -= Constants.margin if @relation.children.length > 0

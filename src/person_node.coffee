@@ -3,28 +3,17 @@ class @PersonNode
   constructor: (stage, person) ->
     @stage  = stage
     @person = person
+    @root   = false
+    @x      = 0
+    @y      = 0
 
-    @root           = false
-    @dirtyRoot      = false
-    @dirtyPosition  = true
-    @dirtyIterator  = 0
-
-    @initializeNodes()
-
-    @initializeRectangle()
-    @initializeText()
-    @initializeVLine()
-
-    @bindRectangle()
-
-  initializeNodes: ->
     @person.node = this
 
-    for partnerRelation in @person.partnerRelations
-      if partnerRelation.node == undefined
-        new RelationNode(@stage, partnerRelation)
-      else
-        partnerRelation.node.initializeLines()
+    @initializeVLine()
+    @initializeRectangle()
+    @initializeText()
+
+    @bindRectangle()
 
   initializeRectangle: ->
     color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
@@ -34,14 +23,50 @@ class @PersonNode
     @graphics.beginFill(color)
 
     if @person.sex == 'M'
-      @graphics.drawRect(0, 0, Constants.width, Constants.height)
+      @drawRectangle()
     else
-      @graphics.drawRoundedRect(0, 0, Constants.width, Constants.height, Constants.height/4)
-
-    @graphics.position.x = -1000
-    @graphics.position.y = -1000
+      @drawRoundRectangle()
 
     @stage.addChild(@graphics)
+
+  initializeText: ->
+    @text = new PIXI.Text(@person.name,
+      font:          "#{Constants.fontSize}px Arial"
+      fill:          0x222222
+      align:         'center'
+      wordWrap:      true
+      wordWrapWidth: Constants.width - Constants.padding / 2
+    )
+
+    @text.anchor.x = 0.5
+    @text.anchor.y = 0.5
+
+    @stage.addChild(@text)
+
+  initializeVLine: ->
+    if @person.parentRelation
+      @vLine = new PIXI.Graphics()
+      @vLine.lineStyle(Constants.lineWidth, 0x333333, 1)
+      @vLine.moveTo(0, 0)
+      @vLine.lineTo(0, -Constants.verticalMargin / 2)
+      @stage.addChild(@vLine)
+
+  drawRectangle: ->
+    @graphics.drawRect(
+      -Constants.width  / 2,
+      -Constants.height / 2,
+      Constants.width,
+      Constants.height
+    )
+
+  drawRoundRectangle: ->
+    @graphics.drawRoundedRect(
+      -Constants.width  / 2,
+      -Constants.height / 2,
+      Constants.width,
+      Constants.height,
+      Constants.height  / 4
+    )
 
   bindRectangle: ->
     @graphics.interactive = true
@@ -52,10 +77,8 @@ class @PersonNode
 
     @graphics.on('click', =>
       @stage.familyTree.rootNode.root      = false
-      @stage.familyTree.rootNode.dirtyRoot = false
       @stage.familyTree.rootNode           = @
       @stage.familyTree.root               = @person
-      @dirtyRoot                           = true
 
       @stage.familyTree.refreshMenu()
 
@@ -72,28 +95,6 @@ class @PersonNode
     @graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
     @graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
 
-  initializeText: ->
-    @text = new PIXI.Text(@person.name,
-      font : "#{Constants.fontSize}px Arial"
-      fill : 0x222222
-    )
-    @text.position.x = -1000
-    @text.position.y = -1000
-    @text.anchor.x   = 0.5
-
-    @stage.addChild(@text)
-
-  initializeVLine: ->
-    if @person.parentRelation
-      @vLine = new PIXI.Graphics()
-      @vLine.lineStyle(Constants.lineWidth, 0x333333, 1)
-      @vLine.moveTo(0, 0)
-      @vLine.lineTo(0, -Constants.verticalMargin / 2 - Constants.lineWidth)
-      @stage.addChild(@vLine)
-
-  width: ->
-    @graphics.width
-
   partnersWidth: ->
     size = 0
     for partnerRelation in @person.partnerRelations
@@ -104,9 +105,21 @@ class @PersonNode
     @text.position
 
   setPosition: (x, y) ->
+    @x = x
+    @y = y
+
+    # Rectangle
+    @graphics.position.x = x
+    @graphics.position.y = y
+
+    # Text
     @text.position.x = x
     @text.position.y = y
-    @dirtyPosition   = true
+
+    # Parent line
+    if @person.parentRelation
+      @vLine.position.x = x
+      @vLine.position.y = y - Constants.height / 2
 
   hideRectangle: ->
     @graphics.position.x = -1000
@@ -121,126 +134,76 @@ class @PersonNode
   displayTree: (x, y) ->
     @root = true
     @setPosition(x, y)
-
-  update: ->
-    @updatePosition()
-
-    if @dirtyRoot
-      @updateBottomPeople()
-      @updateTopPeople()
-
-      if @dirtyIterator >= 10
-        @dirtyRoot = false
-      @dirtyIterator++
+    @updateBottomPeople()
 
   updateBottomPeople: ->
-    @updatePartnerPositions()
     @drawRelationLines()
+    @updatePartnerPositions()
     @updateChildrenPositions()
-    @drawRelationTopVerticalLine()
-    @drawHorizontalLineBetweenChildren()
-
-  updatePosition: ->
-    if @dirtyPosition
-      # Adapt graphics to to text and position it
-      @graphics.width      = @text.width + Constants.padding
-      @graphics.position.x = @text.position.x - @text.width / 2 - Constants.padding / 2
-      @graphics.position.y = @text.position.y - @text.height + Constants.baseLine
-
-      # Position vLine on top of graphics
-      if @person.parentRelation
-        @vLine.position.x = @text.x
-        @vLine.position.y = @graphics.position.y
-
-      @dirtyPosition = false
+    # @drawRelationTopVerticalLine()
+    # @drawHorizontalLineBetweenChildren()
 
   updatePartnerPositions: ->
-    distance     = 0
-    lastBoxWidth = @width()
+    distance = 0
 
     for partnerRelation, i in @person.partnerRelations
-      if @person.sex == 'M'
-        partnerNode  = partnerRelation.wife.node
-        distance     = distance + partnerRelation.node.lineWidth() + lastBoxWidth/2 + partnerNode.width()/2
-      else
-        partnerNode  = partnerRelation.husband.node
-        distance     = distance - partnerRelation.node.lineWidth() - lastBoxWidth/2 - partnerNode.width()/2
+      if i == 0
+        offset = Constants.width + Constants.margin
 
-      lastBoxWidth = partnerNode.width()
-      partnerNode.setPosition(@text.position.x + distance, @text.position.y)
-      partnerNode.update()
+        if @person.sex == 'M'
+          partnerRelation.wife.node.setPosition(@x + offset, @y)
+        else if @person.sex == 'F'
+          partnerRelation.husband.node.setPosition(@x - offset, @y)
+      else
+        previousHusband = @person.partnerRelations[i-1].husband
+        previousWife    = @person.partnerRelations[i-1].wife
+        previousCenterX = (previousHusband.node.x + previousWife.node.x) / 2
+
+        children        = partnerRelation.children
+        childrenSize    = if children.length > 1 then children.length * Constants.width + (children.length-1) * Constants.margin else 0
+        distance        = @person.partnerRelations[i-1].node.globalWidth() / 2 + Constants.width / 2 + Constants.margin + childrenSize / 2
+
+        if @person.sex == 'M'
+          partnerRelation.wife.node.setPosition(previousCenterX + distance, @y)
+        else if @person.sex == 'F'
+          partnerRelation.husband.node.setPosition(previousCenterX - distance, @y)
 
   drawRelationLines: ->
-    # y position of line
-    y = @text.position.y + Constants.baseLine + Constants.lineWidth
+    husbandsX = _.collect(@person.partnerRelations, (p) -> p.husband.node.x)
+    wivesX    = _.collect(@person.partnerRelations, (p) -> p.wife.node.x)
 
-    # x position to start the line
-    if @person.sex == 'M'
-      position = @text.position.x + @width() / 2 # right of the first box
-    else if @person.sex == 'F'
-      position = @text.position.x - @width() / 2 # left of the first box
-
-    previousLineWidth = 0
-    previousNodeWidth = 0
+    minX = _.min(husbandsX.concat(wivesX), (value) -> value)
+    maxX = _.max(husbandsX.concat(wivesX), (value) -> value)
 
     for partnerRelation in @person.partnerRelations
-      lineWidth = partnerRelation.node.lineWidth()
-
-      if @person.sex == 'M'
-        position          = position + previousLineWidth + previousNodeWidth
-        startX            = position
-        endX              = position + lineWidth
-        previousNodeWidth = partnerRelation.wife.node.width()
-      else if @person.sex == 'F'
-        position          = position - previousLineWidth - previousNodeWidth
-        startX            = position
-        endX              = position - lineWidth
-        previousNodeWidth = partnerRelation.husband.node.width()
-
-      previousLineWidth = lineWidth
-
-      # Small horizontal line
-      partnerRelation.node.setHLine(startX, endX, y)
+      partnerRelation.node.setHLine(minX, maxX, @y)
       partnerRelation.node.drawHLine()
 
   updateChildrenPositions: ->
     for partnerRelation, i in @person.partnerRelations
-      startX     = partnerRelation.node.hLineStartX
-      endX       = partnerRelation.node.hLineEndX
-      y          = @text.position.y + @graphics.height / 2 + Constants.verticalMargin
-      lineStartX = if @person.sex == 'M' then startX else endX
-      children   = partnerRelation.children
+      husband  = partnerRelation.husband
+      wife     = partnerRelation.wife
+      children = partnerRelation.children
+
+      if i == 0
+        start = (husband.node.x + wife.node.x) / 2
+      else
+        previousHusband = @person.partnerRelations[i-1].husband
+        previousWife    = @person.partnerRelations[i-1].wife
+        previousCenterX = (previousHusband.node.x + previousWife.node.x) / 2
+
+        childrenSize    = if children.length > 1 then children.length * Constants.width + (children.length-1) * Constants.margin else 0
+
+        distance = @person.partnerRelations[i-1].node.globalWidth() / 2 + Constants.width / 2 + Constants.margin + childrenSize / 2
+        start    = previousCenterX - distance
 
       if children.length > 1
-        #size   = children[i].node.partnersWidth()
-        startX = lineStartX - partnerRelation.husband.node.width() + children[0].node.width() / 2 #+ size
-      else if children.length == 1
-        if i == 0 # first (and only?) partner
-          personPosition1 = partnerRelation.husband.node.text.position
-          personPosition2 = partnerRelation.wife.node.text.position
-        else      # many partners
-          if @person.sex == 'M'
-            personPosition1 = @person.partnerRelations[i-1].wife.node.text.position
-            personPosition2 = partnerRelation.wife.node.text.position
-          else if @person.sex == 'F'
-            personPosition1 = @person.partnerRelations[i-1].husband.node.text.position
-            personPosition2 = partnerRelation.husband.node.text.position
+        childrenSize = children.length * Constants.width + (children.length-1) * Constants.margin
+        start        = start + Constants.width / 2 - childrenSize / 2
 
-        startX = (personPosition1.x + personPosition2.x) / 2
-      else
-        startX = 0
-
-      # update positions of children
-      for child, j in partnerRelation.children
-        child.node.setPosition(startX, y)
-        child.node.update()
-        child.node.updateBottomPeople()
-
-        startX += Constants.margin + child.node.width()
-        if child.sex == 'M'
-          startX += child.node.partnersWidth()
-        if j+1 < children.length && children[j+1].sex == 'F'
-          startX += children[j+1].node.partnersWidth()
+      for child in children
+        child.node.setPosition(start, @y + Constants.verticalMargin)
+        start = start + Constants.width + Constants.margin
 
   drawHorizontalLineBetweenChildren: ->
     for partnerRelation in @person.partnerRelations

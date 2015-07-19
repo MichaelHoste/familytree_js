@@ -56,7 +56,6 @@ class @FamilyTree
       if @isDown
         @x = @startX + mouseData.data.originalEvent.x - @startOffsetX
         @y = @startY + mouseData.data.originalEvent.y - @startOffsetY
-        @rootNode.dirtyRoot = true
 
     @background.on('mousedown',       onDown)
     @background.on('touchstart',      onDown)
@@ -190,14 +189,28 @@ class @FamilyTree
       @save()
     )
 
-  initializeNodes: ->
+  relations: ->
+    relations = []
+
+    for person in @people
+      for partnerRelation in person.partnerRelations
+        relations.push(partnerRelation)
+
+    _.uniq(relations, (relation) -> relation.uuid)
+
+  initializeNodesAndRelations: ->
+    for relation in @relations()
+      if relation.node == undefined
+        new RelationNode(@stage, relation)
+      else
+        relation.node.initializeLines()
+
     for person in @people
       node = new PersonNode(@stage, person)
 
       if person.uuid == @root.uuid
         @root     = person
         @rootNode = node
-        @rootNode.dirtyRoot = true
 
   refreshStage: ->
     @stage = new PIXI.Container() if !@stage
@@ -211,7 +224,7 @@ class @FamilyTree
 
     @initializeBackground()
     @bindScroll()
-    @initializeNodes()
+    @initializeNodesAndRelations()
 
   refreshMenu: ->
     $("#family-tree-panel div").empty()
@@ -317,6 +330,5 @@ class @FamilyTree
     @y = @height / 2 if @y == undefined
 
     @rootNode.displayTree(@x, @y)
-    @rootNode.update()
 
     @renderer.render(@stage)
