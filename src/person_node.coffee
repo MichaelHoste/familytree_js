@@ -160,8 +160,8 @@ class @PersonNode
     @updateTopPeople()
 
   updateBottomPeople: ->
-    @drawRelationLines()
     @updatePartnerPositions()
+    @drawRelationLines()
     @updateChildrenPositions()
     @drawHorizontalLineBetweenChildren()
     @drawRelationTopVerticalLine()
@@ -172,9 +172,9 @@ class @PersonNode
 
       @updateParentsPosition(y)
       @drawParentsHLine(y)
-      #@updateParentsVLinePosition()
+      @updateParentsVLinePosition()
       @updateSiblingsPositions()
-      # @drawParentsChildrenHLine(y)
+      @drawSiblingsHLine(y)
 
       # if @person.parentRelation
       #   @person.father().node.updateTopPeople()
@@ -215,7 +215,6 @@ class @PersonNode
 
         if children.length > 1
           childrenSize = partnerRelation.node.globalWidth()
-          console.log childrenSize
           start        = start - childrenSize / 2 + Constants.width / 2
 
         for child, i in children
@@ -270,19 +269,12 @@ class @PersonNode
     parentRelationNode.drawHLine()
 
   updateParentsVLinePosition: ->
+    husband            = @person.parentRelation.husband
+    wife               = @person.parentRelation.wife
     parentRelationNode = @person.parentRelation.node
 
-    if @person.parentRelation.children.length > 1
-      if @person.sex == 'M' # man has siblings on the left
-        parentLimit = @person.father()
-      else if @person.sex == 'F' # woman has siblings on the right
-        parentLimit = @person.mother()
-
-      parentRelationNode.vLine.position.x = (@x + parentLimit.node.x) / 2
-      parentRelationNode.vLine.position.y = @y - Constants.height / 2 - Constants.verticalMargin / 2
-    else
-      parentRelationNode.vLine.position.x = @vLine.position.x
-      parentRelationNode.vLine.position.y = @y - Constants.height / 2 - Constants.verticalMargin / 2 + Constants.lineWidth
+    parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2
+    parentRelationNode.vLine.position.y = @y - Constants.verticalMargin - Constants.lineWidth
 
   updateSiblingsPositions: ->
     children    = @person.parentRelation.children
@@ -318,11 +310,11 @@ class @PersonNode
         child.node.updateBottomPeople()
         offset = offset + child.node.size() + Constants.margin
 
-  drawParentsChildrenHLine: (y) ->
+  drawSiblingsHLine: (y) ->
     parentRelationNode = @person.parentRelation.node
     children           = @person.parentRelation.children
 
-    parentRelationNode.childrenHLineStartX = _.min(children, (child) -> child.node.text.position.x).node.text.position.x
-    parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.text.position.x).node.text.position.x
-    parentRelationNode.childrenHLineY      = y + Constants.baseLine + Constants.verticalMargin / 2
+    parentRelationNode.childrenHLineStartX = _.min(children, (child) -> child.node.x).node.x
+    parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.x).node.x
+    parentRelationNode.childrenHLineY      = y + Constants.verticalMargin / 2
     parentRelationNode.drawChildrenHLine()

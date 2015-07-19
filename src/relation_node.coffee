@@ -39,9 +39,6 @@ class @RelationNode
   globalWidth: ->
     Math.max(@relationWidth(), @childrenWidth())
 
-  # lineWidth: ->
-  #   @globalWidth() - @relation.husband.node.width() - @relation.wife.node.width()
-
   relationWidth: ->
     2 * Constants.width + Constants.margin
 

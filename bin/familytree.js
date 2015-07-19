@@ -735,8 +735,8 @@
     };
 
     PersonNode.prototype.updateBottomPeople = function() {
-      this.drawRelationLines();
       this.updatePartnerPositions();
+      this.drawRelationLines();
       this.updateChildrenPositions();
       this.drawHorizontalLineBetweenChildren();
       return this.drawRelationTopVerticalLine();
@@ -748,7 +748,9 @@
         y = this.y - Constants.verticalMargin - Constants.height / 2;
         this.updateParentsPosition(y);
         this.drawParentsHLine(y);
-        return this.updateSiblingsPositions();
+        this.updateParentsVLinePosition();
+        this.updateSiblingsPositions();
+        return this.drawSiblingsHLine(y);
       }
     };
 
@@ -814,7 +816,6 @@
           start = (husband.node.x + wife.node.x) / 2;
           if (children.length > 1) {
             childrenSize = partnerRelation.node.globalWidth();
-            console.log(childrenSize);
             start = start - childrenSize / 2 + Constants.width / 2;
           }
           _results.push((function() {
@@ -906,20 +907,12 @@
     };
 
     PersonNode.prototype.updateParentsVLinePosition = function() {
-      var parentLimit, parentRelationNode;
+      var husband, parentRelationNode, wife;
+      husband = this.person.parentRelation.husband;
+      wife = this.person.parentRelation.wife;
       parentRelationNode = this.person.parentRelation.node;
-      if (this.person.parentRelation.children.length > 1) {
-        if (this.person.sex === 'M') {
-          parentLimit = this.person.father();
-        } else if (this.person.sex === 'F') {
-          parentLimit = this.person.mother();
-        }
-        parentRelationNode.vLine.position.x = (this.x + parentLimit.node.x) / 2;
-        return parentRelationNode.vLine.position.y = this.y - Constants.height / 2 - Constants.verticalMargin / 2;
-      } else {
-        parentRelationNode.vLine.position.x = this.vLine.position.x;
-        return parentRelationNode.vLine.position.y = this.y - Constants.height / 2 - Constants.verticalMargin / 2 + Constants.lineWidth;
-      }
+      parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2;
+      return parentRelationNode.vLine.position.y = this.y - Constants.verticalMargin - Constants.lineWidth;
     };
 
     PersonNode.prototype.updateSiblingsPositions = function() {
@@ -961,17 +954,17 @@
       return _results;
     };
 
-    PersonNode.prototype.drawParentsChildrenHLine = function(y) {
+    PersonNode.prototype.drawSiblingsHLine = function(y) {
       var children, parentRelationNode;
       parentRelationNode = this.person.parentRelation.node;
       children = this.person.parentRelation.children;
       parentRelationNode.childrenHLineStartX = _.min(children, function(child) {
-        return child.node.text.position.x;
-      }).node.text.position.x;
+        return child.node.x;
+      }).node.x;
       parentRelationNode.childrenHLineEndX = _.max(children, function(child) {
-        return child.node.text.position.x;
-      }).node.text.position.x;
-      parentRelationNode.childrenHLineY = y + Constants.baseLine + Constants.verticalMargin / 2;
+        return child.node.x;
+      }).node.x;
+      parentRelationNode.childrenHLineY = y + Constants.verticalMargin / 2;
       return parentRelationNode.drawChildrenHLine();
     };
 
