@@ -19,8 +19,6 @@
 
     Constants.verticalMargin = Constants.margin * 1.5;
 
-    Constants.effectiveWidth = Constants.width + Constants.lineWidth;
-
     return Constants;
 
   })();
@@ -745,11 +743,14 @@
       return this.drawRelationTopVerticalLine();
     };
 
-    PersonNode.prototype.updateTopPeople = function() {
+    PersonNode.prototype.updateTopPeople = function(align) {
       var y;
+      if (align == null) {
+        align = 'center';
+      }
       if (this.person.parentRelation) {
         y = this.y - Constants.verticalMargin - Constants.height / 2;
-        this.updateSiblingsPositions();
+        this.updateSiblingsPositions(align);
         this.drawSiblingsHLine(y);
         this.updateParentsPosition(y);
         this.drawParentsHLine(y);
@@ -890,8 +891,11 @@
       return _results;
     };
 
-    PersonNode.prototype.updateSiblingsPositions = function() {
-      var child, children, childrenLeftDistance, childrenRightDistance, i, leftDistance, offset, personIndex, rightDistance, _i, _j, _k, _len, _ref, _results;
+    PersonNode.prototype.updateSiblingsPositions = function(align) {
+      var child, children, childrenLeftDistance, childrenRightDistance, i, leftDistance, offset, personIndex, rightDistance, startIndex, _i, _j, _k, _len, _ref, _results;
+      if (align == null) {
+        align = 'center';
+      }
       children = this.person.parentRelation.children;
       personIndex = _.findIndex(children, this.person);
       for (i = _i = 0, _len = children.length; _i < _len; i = ++_i) {
@@ -901,32 +905,38 @@
           child.node.updateBottomPeople();
         }
       }
-      leftDistance = this.x - this.leftMostNode() + Constants.width / 2;
-      offset = 0;
-      for (i = _j = personIndex; personIndex <= 0 ? _j <= 0 : _j >= 0; i = personIndex <= 0 ? ++_j : --_j) {
-        if (i !== personIndex) {
-          child = children[i];
-          childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2;
-          child.node.setPosition(this.x - (leftDistance + childrenRightDistance + Constants.margin + offset), this.y);
-          child.node.updateBottomPeople();
-          offset = offset + child.node.size() + Constants.margin;
+      if (align === 'center' || align === 'left') {
+        leftDistance = this.x - this.leftMostNode() + Constants.width / 2;
+        offset = 0;
+        startIndex = align === 'center' ? personIndex : children.length - 1;
+        for (i = _j = startIndex; startIndex <= 0 ? _j <= 0 : _j >= 0; i = startIndex <= 0 ? ++_j : --_j) {
+          if (i !== personIndex) {
+            child = children[i];
+            childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2;
+            child.node.setPosition(this.x - (leftDistance + childrenRightDistance + Constants.margin + offset), this.y);
+            child.node.updateBottomPeople();
+            offset = offset + child.node.size() + Constants.margin;
+          }
         }
       }
-      rightDistance = this.rightMostNode() - this.x + Constants.width / 2;
-      offset = 0;
-      _results = [];
-      for (i = _k = personIndex, _ref = children.length - 1; personIndex <= _ref ? _k <= _ref : _k >= _ref; i = personIndex <= _ref ? ++_k : --_k) {
-        if (i !== personIndex) {
-          child = children[i];
-          childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2;
-          child.node.setPosition(this.x + (rightDistance + childrenLeftDistance + Constants.margin + offset), this.y);
-          child.node.updateBottomPeople();
-          _results.push(offset = offset + child.node.size() + Constants.margin);
-        } else {
-          _results.push(void 0);
+      if (align === 'center' || align === 'right') {
+        rightDistance = this.rightMostNode() - this.x + Constants.width / 2;
+        offset = 0;
+        startIndex = align === 'center' ? personIndex : 0;
+        _results = [];
+        for (i = _k = startIndex, _ref = children.length - 1; startIndex <= _ref ? _k <= _ref : _k >= _ref; i = startIndex <= _ref ? ++_k : --_k) {
+          if (i !== personIndex) {
+            child = children[i];
+            childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2;
+            child.node.setPosition(this.x + (rightDistance + childrenLeftDistance + Constants.margin + offset), this.y);
+            child.node.updateBottomPeople();
+            _results.push(offset = offset + child.node.size() + Constants.margin);
+          } else {
+            _results.push(void 0);
+          }
         }
+        return _results;
       }
-      return _results;
     };
 
     PersonNode.prototype.drawSiblingsHLine = function(y) {
@@ -956,7 +966,9 @@
       }
       offset = this.x - (left + Constants.width / 2);
       father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y);
-      return mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y);
+      mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y);
+      father.node.updateTopPeople('left');
+      return mother.node.updateTopPeople('right');
     };
 
     PersonNode.prototype.drawParentsHLine = function(y) {
@@ -976,7 +988,7 @@
       wife = this.person.parentRelation.wife;
       parentRelationNode = this.person.parentRelation.node;
       parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2;
-      return parentRelationNode.vLine.position.y = this.y - Constants.verticalMargin - Constants.lineWidth;
+      return parentRelationNode.vLine.position.y = husband.node.y + Constants.verticalMargin / 4;
     };
 
     return PersonNode;

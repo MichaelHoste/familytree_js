@@ -171,11 +171,11 @@ class @PersonNode
     @drawHorizontalLineBetweenChildren()
     @drawRelationTopVerticalLine()
 
-  updateTopPeople: ->
+  updateTopPeople: (align = 'center') ->
     if @person.parentRelation
       y  = @y - Constants.verticalMargin - Constants.height / 2
 
-      @updateSiblingsPositions()
+      @updateSiblingsPositions(align)
       @drawSiblingsHLine(y)
       @updateParentsPosition(y)
       @drawParentsHLine(y)
@@ -256,7 +256,7 @@ class @PersonNode
           partnerRelation.node.vLine.position.x = (startX + endX) / 2
           partnerRelation.node.vLine.position.y = @y + Constants.verticalMargin / 4
 
-  updateSiblingsPositions: ->
+  updateSiblingsPositions: (align = 'center') ->
     children    = @person.parentRelation.children
     personIndex = _.findIndex(children, @person)
 
@@ -267,28 +267,34 @@ class @PersonNode
         child.node.updateBottomPeople()
 
     # Display left siblings and descendants
-    leftDistance = @x - @leftMostNode() + Constants.width / 2
-    offset       = 0
+    if align == 'center' || align == 'left'
+      leftDistance = @x - @leftMostNode() + Constants.width / 2
+      offset       = 0
 
-    for i in [personIndex..0]
-      if i != personIndex
-        child = children[i]
-        childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2
-        child.node.setPosition(@x - (leftDistance + childrenRightDistance + Constants.margin + offset), @y)
-        child.node.updateBottomPeople()
-        offset = offset + child.node.size() + Constants.margin
+      startIndex = if align == 'center' then personIndex else children.length-1
+
+      for i in [startIndex..0]
+        if i != personIndex
+          child = children[i]
+          childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2
+          child.node.setPosition(@x - (leftDistance + childrenRightDistance + Constants.margin + offset), @y)
+          child.node.updateBottomPeople()
+          offset = offset + child.node.size() + Constants.margin
 
     # Display right siblings and descendants
-    rightDistance = @rightMostNode() - @x + Constants.width / 2
-    offset        = 0
+    if align == 'center' || align == 'right'
+      rightDistance = @rightMostNode() - @x + Constants.width / 2
+      offset        = 0
 
-    for i in [personIndex..children.length-1]
-      if i != personIndex
-        child = children[i]
-        childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2
-        child.node.setPosition(@x + (rightDistance + childrenLeftDistance + Constants.margin + offset), @y)
-        child.node.updateBottomPeople()
-        offset = offset + child.node.size() + Constants.margin
+      startIndex = if align == 'center' then personIndex else 0
+
+      for i in [startIndex..children.length-1]
+        if i != personIndex
+          child = children[i]
+          childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2
+          child.node.setPosition(@x + (rightDistance + childrenLeftDistance + Constants.margin + offset), @y)
+          child.node.updateBottomPeople()
+          offset = offset + child.node.size() + Constants.margin
 
   drawSiblingsHLine: (y) ->
     parentRelationNode = @person.parentRelation.node
@@ -315,6 +321,9 @@ class @PersonNode
     father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y)
     mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y)
 
+    father.node.updateTopPeople('left')
+    mother.node.updateTopPeople('right')
+
   drawParentsHLine: (y) ->
     parentRelationNode = @person.parentRelation.node
     husband            = @person.parentRelation.husband
@@ -331,4 +340,4 @@ class @PersonNode
     parentRelationNode = @person.parentRelation.node
 
     parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2
-    parentRelationNode.vLine.position.y = @y - Constants.verticalMargin - Constants.lineWidth
+    parentRelationNode.vLine.position.y = husband.node.y + Constants.verticalMargin / 4
