@@ -75,25 +75,30 @@ class @PersonNode
 
     @graphics.on('mouseout', => $('#family-tree').css('cursor', 'default'))
 
-    @graphics.on('click', =>
-      @stage.familyTree.rootNode.root      = false
-      @stage.familyTree.rootNode           = @
-      @stage.familyTree.root               = @person
-
-      @stage.familyTree.refreshMenu()
-
-      @stage.familyTree.cleanTree()
-      @stage.familyTree.x = @stage.familyTree.width  / 2
-      @stage.familyTree.y = @stage.familyTree.height / 2
-      @displayTree(@stage.familyTree.x, @stage.familyTree.y)
-    )
-
     @graphics.on('mousedown',       @stage.background._events.mousedown.fn)
     @graphics.on('touchstart',      @stage.background._events.touchstart.fn)
     @graphics.on('mouseup',         @stage.background._events.mouseup.fn)
     @graphics.on('touchend',        @stage.background._events.touchend.fn)
-    @graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
-    @graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
+    #@graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
+    #@graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
+
+    @graphics.on('click', (mouseData) =>
+      event      = mouseData.data.originalEvent
+      familyTree = @stage.familyTree
+
+      if familyTree.startOffsetX == event.x && familyTree.startOffsetY == event.y
+        familyTree.rootNode.root      = false
+        familyTree.rootNode           = @
+        familyTree.root               = @person
+
+        familyTree.refreshMenu()
+
+        familyTree.cleanTree()
+        familyTree.x = familyTree.width  / 2
+        familyTree.y = familyTree.height / 2
+        @displayTree(familyTree.x, familyTree.y)
+        familyTree.animate()
+    )
 
   setPosition: (x, y, apply = true) ->
     @x = x
@@ -170,11 +175,11 @@ class @PersonNode
     if @person.parentRelation
       y  = @y - Constants.verticalMargin - Constants.height / 2
 
+      @updateSiblingsPositions()
+      @drawSiblingsHLine(y)
       @updateParentsPosition(y)
       @drawParentsHLine(y)
       @updateParentsVLinePosition()
-      @updateSiblingsPositions()
-      @drawSiblingsHLine(y)
 
       # if @person.parentRelation
       #   @person.father().node.updateTopPeople()
@@ -251,31 +256,6 @@ class @PersonNode
           partnerRelation.node.vLine.position.x = (startX + endX) / 2
           partnerRelation.node.vLine.position.y = @y + Constants.verticalMargin / 4
 
-  updateParentsPosition: (y) ->
-    father = @person.parentRelation.husband
-    mother = @person.parentRelation.wife
-
-    father.node.setPosition(@x - Constants.margin / 2 - Constants.width / 2, y)
-    mother.node.setPosition(@x + Constants.margin / 2 + Constants.width / 2, y)
-
-  drawParentsHLine: (y) ->
-    parentRelationNode = @person.parentRelation.node
-    husband            = @person.parentRelation.husband
-    wife               = @person.parentRelation.wife
-
-    parentRelationNode.hLineStartX = husband.node.x + Constants.width / 2
-    parentRelationNode.hLineEndX   = wife.node.x    - Constants.width / 2
-    parentRelationNode.hLineY      = y
-    parentRelationNode.drawHLine()
-
-  updateParentsVLinePosition: ->
-    husband            = @person.parentRelation.husband
-    wife               = @person.parentRelation.wife
-    parentRelationNode = @person.parentRelation.node
-
-    parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2
-    parentRelationNode.vLine.position.y = @y - Constants.verticalMargin - Constants.lineWidth
-
   updateSiblingsPositions: ->
     children    = @person.parentRelation.children
     personIndex = _.findIndex(children, @person)
@@ -287,10 +267,10 @@ class @PersonNode
         child.node.updateBottomPeople()
 
     # Display left siblings and descendants
-    leftDistance = @x - @leftMostNode()  + Constants.width / 2
+    leftDistance = @x - @leftMostNode() + Constants.width / 2
     offset       = 0
 
-    for i in [0..personIndex]
+    for i in [personIndex..0]
       if i != personIndex
         child = children[i]
         childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2
@@ -318,3 +298,37 @@ class @PersonNode
     parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.x).node.x
     parentRelationNode.childrenHLineY      = y + Constants.verticalMargin / 2
     parentRelationNode.drawChildrenHLine()
+
+  updateParentsPosition: (y) ->
+    father = @person.parentRelation.husband
+    mother = @person.parentRelation.wife
+
+    if @person.siblings().length == 0
+      center = @x
+    else
+      right  = father.node.rightMostNode()
+      left   = father.node.leftMostNode()
+      center = left + (right - left) / 2
+
+    offset = @x - (left + Constants.width / 2)
+
+    father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y)
+    mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y)
+
+  drawParentsHLine: (y) ->
+    parentRelationNode = @person.parentRelation.node
+    husband            = @person.parentRelation.husband
+    wife               = @person.parentRelation.wife
+
+    parentRelationNode.hLineStartX = husband.node.x + Constants.width / 2
+    parentRelationNode.hLineEndX   = wife.node.x    - Constants.width / 2
+    parentRelationNode.hLineY      = y
+    parentRelationNode.drawHLine()
+
+  updateParentsVLinePosition: ->
+    husband            = @person.parentRelation.husband
+    wife               = @person.parentRelation.wife
+    parentRelationNode = @person.parentRelation.node
+
+    parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2
+    parentRelationNode.vLine.position.y = @y - Constants.verticalMargin - Constants.lineWidth

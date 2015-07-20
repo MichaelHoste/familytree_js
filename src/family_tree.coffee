@@ -56,13 +56,14 @@ class @FamilyTree
       if @isDown
         @x = @startX + mouseData.data.originalEvent.x - @startOffsetX
         @y = @startY + mouseData.data.originalEvent.y - @startOffsetY
+        @animate()
 
     @background.on('mousedown',       onDown)
     @background.on('touchstart',      onDown)
     @background.on('mouseup',         onUp)
     @background.on('touchend',        onUp)
-    @background.on('mouseupoutside',  onUp)
-    @background.on('touchendoutside', onUp)
+    #@background.on('mouseupoutside',  onUp)
+    #@background.on('touchendoutside', onUp)
     @background.on('mousemove',       onMove)
 
   bindMenu: ->
@@ -225,6 +226,7 @@ class @FamilyTree
     @initializeBackground()
     @bindScroll()
     @initializeNodesAndRelations()
+    @animate()
 
   refreshMenu: ->
     $("#family-tree-panel div").empty()
@@ -324,7 +326,7 @@ class @FamilyTree
     @deserialize(serializedData)
 
   animate: =>
-    requestAnimationFrame(@animate)
+    #requestAnimationFrame(@animate)
 
     @x = @width  / 2 if @x == undefined
     @y = @height / 2 if @y == undefined
