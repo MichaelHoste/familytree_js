@@ -641,10 +641,12 @@
       this.graphics.on('mouseup', this.stage.background._events.mouseup.fn);
       this.graphics.on('touchend', this.stage.background._events.touchend.fn);
       return this.graphics.on('click', function(mouseData) {
-        var event, familyTree;
+        var event, familyTree, moveX, moveY;
         event = mouseData.data.originalEvent;
         familyTree = _this.stage.familyTree;
-        if (familyTree.startOffsetX === event.x && familyTree.startOffsetY === event.y) {
+        moveX = Math.abs(familyTree.startOffsetX - event.x);
+        moveY = Math.abs(familyTree.startOffsetY - event.y);
+        if (moveX + moveY < 10) {
           familyTree.rootNode.root = false;
           familyTree.rootNode = _this;
           familyTree.root = _this.person;
@@ -669,7 +671,7 @@
         this.graphics.position.y = y;
         this.text.position.x = x;
         this.text.position.y = y;
-        if (this.person.parentRelation) {
+        if (this.person.parentRelation && this.person.parentRelation.husband.node.x > 0) {
           this.vLine.position.x = x;
           return this.vLine.position.y = y - Constants.height / 2;
         }

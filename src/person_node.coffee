@@ -86,7 +86,10 @@ class @PersonNode
       event      = mouseData.data.originalEvent
       familyTree = @stage.familyTree
 
-      if familyTree.startOffsetX == event.x && familyTree.startOffsetY == event.y
+      moveX = Math.abs(familyTree.startOffsetX - event.x)
+      moveY = Math.abs(familyTree.startOffsetY - event.y)
+
+      if moveX + moveY < 10
         familyTree.rootNode.root      = false
         familyTree.rootNode           = @
         familyTree.root               = @person
@@ -113,8 +116,8 @@ class @PersonNode
       @text.position.x = x
       @text.position.y = y
 
-      # Parent line
-      if @person.parentRelation
+      # Parent line (only if parent is displayed)
+      if @person.parentRelation && @person.parentRelation.husband.node.x > 0
         @vLine.position.x = x
         @vLine.position.y = y - Constants.height / 2
 
