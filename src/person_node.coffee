@@ -117,7 +117,7 @@ class @PersonNode
       @text.position.y = y
 
       # Parent line (only if parent is displayed)
-      if @person.parentRelation && @person.parentRelation.husband.node.x > 0
+      if @person.parentRelation
         @vLine.position.x = x
         @vLine.position.y = y - Constants.height / 2
 
@@ -179,14 +179,10 @@ class @PersonNode
       y  = @y - Constants.verticalMargin - Constants.height / 2
 
       @updateSiblingsPositions(align)
-      @drawSiblingsHLine(y)
-      @updateParentsPosition(y)
+      @updateParentsPosition(y, align)
       @drawParentsHLine(y)
       @updateParentsVLinePosition()
-
-      # if @person.parentRelation
-      #   @person.father().node.updateTopPeople()
-      #   @person.mother().node.updateTopPeople()
+      @drawSiblingsHLine(y)
 
   updatePartnerPositions: ->
     distance = 0
@@ -299,16 +295,7 @@ class @PersonNode
           child.node.updateBottomPeople()
           offset = offset + child.node.size() + Constants.margin
 
-  drawSiblingsHLine: (y) ->
-    parentRelationNode = @person.parentRelation.node
-    children           = @person.parentRelation.children
-
-    parentRelationNode.childrenHLineStartX = _.min(children, (child) -> child.node.x).node.x
-    parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.x).node.x
-    parentRelationNode.childrenHLineY      = y + Constants.verticalMargin / 2
-    parentRelationNode.drawChildrenHLine()
-
-  updateParentsPosition: (y) ->
+  updateParentsPosition: (y, align = 'center') ->
     father = @person.parentRelation.husband
     mother = @person.parentRelation.wife
 
@@ -319,13 +306,33 @@ class @PersonNode
       left   = father.node.leftMostNode()
       center = left + (right - left) / 2
 
-    offset = @x - (left + Constants.width / 2)
+    ##
+    # if align == 'left' || align == 'right'
+    # # Update positions of top people (to know the global size of this part)
+    #   father.node.setPosition(@x - 1000, @y)
+    #   father.node.updateTopPeople()
+    #   mother.node.setPosition(@x - 1000, @y)
+    #   mother.node.updateTopPeople()
+
+    #   @leftMostParentNode
+    # ##
+
+    if align == 'left'
+      center = center - Constants.margin / 2 - Constants.width / 2
+    else if align == 'right'
+      center = center + Constants.margin / 2 + Constants.width / 2
 
     father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y)
     mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y)
 
-    father.node.updateTopPeople('left')
-    mother.node.updateTopPeople('right')
+    # If got 2 parents, align all father/mother sibings on the left/right to make sense
+    if father.parentRelation && mother.parentRelation
+      father.node.updateTopPeople('left')
+      mother.node.updateTopPeople('right')
+    # If only 1 parent (or 0), align him/her on the center
+    else
+      father.node.updateTopPeople('center')
+      mother.node.updateTopPeople('center')
 
   drawParentsHLine: (y) ->
     parentRelationNode = @person.parentRelation.node
@@ -344,3 +351,24 @@ class @PersonNode
 
     parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2
     parentRelationNode.vLine.position.y = husband.node.y + Constants.verticalMargin / 4
+
+  drawSiblingsHLine: (y) ->
+    parentRelationNode = @person.parentRelation.node
+    children           = @person.parentRelation.children
+
+    parentRelationNode.childrenHLineY      = y + Constants.verticalMargin / 2
+    parentRelationNode.childrenHLineStartX = _.min(children, (child) -> child.node.x).node.x
+    parentRelationNode.childrenHLineEndX   = _.max(children, (child) -> child.node.x).node.x
+
+    if @person.sex == 'F'
+      parentRelationNode.childrenHLineEndX = Math.max(
+        parentRelationNode.childrenHLineEndX,
+        parentRelationNode.vLine.position.x
+      )
+    else if @person.sex == 'M'
+      parentRelationNode.childrenHLineStartX = Math.min(
+        parentRelationNode.childrenHLineStartX,
+        parentRelationNode.vLine.position.x
+      )
+
+    parentRelationNode.drawChildrenHLine()

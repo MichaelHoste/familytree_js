@@ -671,7 +671,7 @@
         this.graphics.position.y = y;
         this.text.position.x = x;
         this.text.position.y = y;
-        if (this.person.parentRelation && this.person.parentRelation.husband.node.x > 0) {
+        if (this.person.parentRelation) {
           this.vLine.position.x = x;
           return this.vLine.position.y = y - Constants.height / 2;
         }
@@ -753,10 +753,10 @@
       if (this.person.parentRelation) {
         y = this.y - Constants.verticalMargin - Constants.height / 2;
         this.updateSiblingsPositions(align);
-        this.drawSiblingsHLine(y);
-        this.updateParentsPosition(y);
+        this.updateParentsPosition(y, align);
         this.drawParentsHLine(y);
-        return this.updateParentsVLinePosition();
+        this.updateParentsVLinePosition();
+        return this.drawSiblingsHLine(y);
       }
     };
 
@@ -941,22 +941,11 @@
       }
     };
 
-    PersonNode.prototype.drawSiblingsHLine = function(y) {
-      var children, parentRelationNode;
-      parentRelationNode = this.person.parentRelation.node;
-      children = this.person.parentRelation.children;
-      parentRelationNode.childrenHLineStartX = _.min(children, function(child) {
-        return child.node.x;
-      }).node.x;
-      parentRelationNode.childrenHLineEndX = _.max(children, function(child) {
-        return child.node.x;
-      }).node.x;
-      parentRelationNode.childrenHLineY = y + Constants.verticalMargin / 2;
-      return parentRelationNode.drawChildrenHLine();
-    };
-
-    PersonNode.prototype.updateParentsPosition = function(y) {
-      var center, father, left, mother, offset, right;
+    PersonNode.prototype.updateParentsPosition = function(y, align) {
+      var center, father, left, mother, right;
+      if (align == null) {
+        align = 'center';
+      }
       father = this.person.parentRelation.husband;
       mother = this.person.parentRelation.wife;
       if (this.person.siblings().length === 0) {
@@ -966,11 +955,20 @@
         left = father.node.leftMostNode();
         center = left + (right - left) / 2;
       }
-      offset = this.x - (left + Constants.width / 2);
+      if (align === 'left') {
+        center = center - Constants.margin / 2 - Constants.width / 2;
+      } else if (align === 'right') {
+        center = center + Constants.margin / 2 + Constants.width / 2;
+      }
       father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y);
       mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y);
-      father.node.updateTopPeople('left');
-      return mother.node.updateTopPeople('right');
+      if (father.parentRelation && mother.parentRelation) {
+        father.node.updateTopPeople('left');
+        return mother.node.updateTopPeople('right');
+      } else {
+        father.node.updateTopPeople('center');
+        return mother.node.updateTopPeople('center');
+      }
     };
 
     PersonNode.prototype.drawParentsHLine = function(y) {
@@ -991,6 +989,25 @@
       parentRelationNode = this.person.parentRelation.node;
       parentRelationNode.vLine.position.x = (husband.node.x + wife.node.x) / 2;
       return parentRelationNode.vLine.position.y = husband.node.y + Constants.verticalMargin / 4;
+    };
+
+    PersonNode.prototype.drawSiblingsHLine = function(y) {
+      var children, parentRelationNode;
+      parentRelationNode = this.person.parentRelation.node;
+      children = this.person.parentRelation.children;
+      parentRelationNode.childrenHLineY = y + Constants.verticalMargin / 2;
+      parentRelationNode.childrenHLineStartX = _.min(children, function(child) {
+        return child.node.x;
+      }).node.x;
+      parentRelationNode.childrenHLineEndX = _.max(children, function(child) {
+        return child.node.x;
+      }).node.x;
+      if (this.person.sex === 'F') {
+        parentRelationNode.childrenHLineEndX = Math.max(parentRelationNode.childrenHLineEndX, parentRelationNode.vLine.position.x);
+      } else if (this.person.sex === 'M') {
+        parentRelationNode.childrenHLineStartX = Math.min(parentRelationNode.childrenHLineStartX, parentRelationNode.vLine.position.x);
+      }
+      return parentRelationNode.drawChildrenHLine();
     };
 
     return PersonNode;
