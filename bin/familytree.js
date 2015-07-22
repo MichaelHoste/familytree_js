@@ -412,7 +412,9 @@
       this.root = _.findWhere(this.people, {
         uuid: serializedRoot
       });
-      return this.refreshStage();
+      if (this.renderer) {
+        return this.refreshStage();
+      }
     };
 
     FamilyTree.prototype.save = function() {

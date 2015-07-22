@@ -319,7 +319,7 @@ class @FamilyTree
     @root = _.findWhere(@people, { uuid: serializedRoot })
 
     # Reinitialize screen
-    @refreshStage()
+    @refreshStage() if @renderer
 
   save: ->
     @saveData(@serialize()) if @saveData
