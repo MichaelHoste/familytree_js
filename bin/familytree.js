@@ -35,6 +35,7 @@
       this.people = options.people || [];
       this.root = options.root;
       this.saveData = options.saveData;
+      this.stage = new PIXI.Container();
       if (options.serializedData) {
         this.deserialize(options.serializedData);
       }
@@ -280,9 +281,6 @@
     };
 
     FamilyTree.prototype.refreshStage = function() {
-      if (!this.stage) {
-        this.stage = new PIXI.Container();
-      }
       console.log(this.stage.children.length);
       while (this.stage.children.length > 0) {
         this.stage.removeChild(this.stage.children[0]);

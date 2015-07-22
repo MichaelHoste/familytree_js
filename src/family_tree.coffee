@@ -6,6 +6,7 @@ class @FamilyTree
     @people   = options.people || []
     @root     = options.root
     @saveData = options.saveData
+    @stage    = new PIXI.Container()
 
     if options.serializedData
       @deserialize(options.serializedData)
@@ -217,8 +218,6 @@ class @FamilyTree
         @rootNode = node
 
   refreshStage: ->
-    @stage = new PIXI.Container() if !@stage
-
     console.log @stage.children.length
 
     while @stage.children.length > 0
