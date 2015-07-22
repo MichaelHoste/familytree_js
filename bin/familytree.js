@@ -539,7 +539,11 @@
     };
 
     Person.prototype.siblings = function() {
-      return _.difference(this.parentRelation.children, [this]);
+      if (this.parentRelation) {
+        return _.difference(this.parentRelation.children, [this]);
+      } else {
+        return [];
+      }
     };
 
     Person.prototype.niblings = function() {
@@ -750,11 +754,11 @@
       }
     };
 
-    PersonNode.prototype.leftMostNode = function() {
+    PersonNode.prototype.leftMostNodeX = function() {
       var partner, partnerType, xArray;
       if (this.person.partnerRelations.length) {
         xArray = _.collect(this.person.partnerRelations[0].children, function(child) {
-          return child.node.leftMostNode();
+          return child.node.leftMostNodeX();
         });
         partnerType = this.person.sex === 'M' ? 'wife' : 'husband';
         partner = this.person.partnerRelations[0][partnerType];
@@ -766,11 +770,11 @@
       return _.min(xArray);
     };
 
-    PersonNode.prototype.rightMostNode = function() {
+    PersonNode.prototype.rightMostNodeX = function() {
       var partner, partnerType, xArray;
       if (this.person.partnerRelations.length) {
         xArray = _.collect(this.person.partnerRelations[0].children, function(child) {
-          return child.node.rightMostNode();
+          return child.node.rightMostNodeX();
         });
         partnerType = this.person.sex === 'M' ? 'wife' : 'husband';
         partner = this.person.partnerRelations[0][partnerType];
@@ -782,8 +786,66 @@
       return _.max(xArray);
     };
 
+    PersonNode.prototype.leftMostParentNodeX = function() {
+      var father, mother, parent, peopleX, _i, _len, _ref;
+      peopleX = [];
+      _ref = this.person.parents();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        parent = _ref[_i];
+        peopleX.concat(_.collect(parent.siblings(), function(person) {
+          return person.node.x;
+        }));
+      }
+      if (this.person.parentRelation) {
+        father = this.person.parentRelation.husband;
+        mother = this.person.parentRelation.wife;
+        if (father) {
+          peopleX.push(father.node.x);
+        }
+        if (mother) {
+          peopleX.push(mother.node.x);
+        }
+        if (father) {
+          peopleX.push(father.node.leftMostParentNodeX());
+        }
+        if (mother) {
+          peopleX.push(mother.node.leftMostParentNodeX());
+        }
+      }
+      return _.min(peopleX);
+    };
+
+    PersonNode.prototype.rightMostParentNodeX = function() {
+      var father, mother, parent, peopleX, _i, _len, _ref;
+      peopleX = [];
+      _ref = this.person.parents();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        parent = _ref[_i];
+        peopleX.concat(_.collect(parent.siblings(), function(person) {
+          return person.node.x;
+        }));
+      }
+      if (this.person.parentRelation) {
+        father = this.person.parentRelation.husband;
+        mother = this.person.parentRelation.wife;
+        if (father) {
+          peopleX.push(father.node.x);
+        }
+        if (mother) {
+          peopleX.push(mother.node.x);
+        }
+        if (father) {
+          peopleX.push(father.node.rightMostParentNodeX());
+        }
+        if (mother) {
+          peopleX.push(mother.node.rightMostParentNodeX());
+        }
+      }
+      return _.max(peopleX);
+    };
+
     PersonNode.prototype.size = function() {
-      return this.rightMostNode() - this.leftMostNode() + Constants.width;
+      return this.rightMostNodeX() - this.leftMostNodeX() + Constants.width;
     };
 
     PersonNode.prototype.hideRectangle = function() {
@@ -901,7 +963,7 @@
             results1 = [];
             for (i = k = 0, len1 = children.length; k < len1; i = ++k) {
               child = children[i];
-              offset = child.node.x - child.node.leftMostNode();
+              offset = child.node.x - child.node.leftMostNodeX();
               child.node.setPosition(start + offset, this.y + Constants.height / 2 + Constants.verticalMargin);
               child.node.updateBottomPeople();
               if (child.partnerRelations.length) {
@@ -975,18 +1037,18 @@
       for (i = j = 0, len = children.length; j < len; i = ++j) {
         child = children[i];
         if (i !== personIndex) {
-          child.node.setPosition(this.x - 1000, this.y);
+          child.node.setPosition(this.x - 1000, this.y, false);
           child.node.updateBottomPeople();
         }
       }
       if (align === 'center' || align === 'left') {
-        leftDistance = this.x - this.leftMostNode() + Constants.width / 2;
+        leftDistance = this.x - this.leftMostNodeX() + Constants.width / 2;
         offset = 0;
         startIndex = align === 'center' ? personIndex : children.length - 1;
         for (i = k = ref = startIndex; ref <= 0 ? k <= 0 : k >= 0; i = ref <= 0 ? ++k : --k) {
           if (i !== personIndex) {
             child = children[i];
-            childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2;
+            childrenRightDistance = child.node.rightMostNodeX() - child.node.x + Constants.width / 2;
             child.node.setPosition(this.x - (leftDistance + childrenRightDistance + Constants.margin + offset), this.y);
             child.node.updateBottomPeople();
             offset = offset + child.node.size() + Constants.margin;
@@ -994,14 +1056,14 @@
         }
       }
       if (align === 'center' || align === 'right') {
-        rightDistance = this.rightMostNode() - this.x + Constants.width / 2;
+        rightDistance = this.rightMostNodeX() - this.x + Constants.width / 2;
         offset = 0;
         startIndex = align === 'center' ? personIndex : 0;
         results = [];
         for (i = l = ref1 = startIndex, ref2 = children.length - 1; ref1 <= ref2 ? l <= ref2 : l >= ref2; i = ref1 <= ref2 ? ++l : --l) {
           if (i !== personIndex) {
             child = children[i];
-            childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2;
+            childrenLeftDistance = child.node.x - child.node.leftMostNodeX() + Constants.width / 2;
             child.node.setPosition(this.x + (rightDistance + childrenLeftDistance + Constants.margin + offset), this.y);
             child.node.updateBottomPeople();
             results.push(offset = offset + child.node.size() + Constants.margin);
@@ -1014,26 +1076,50 @@
     };
 
     PersonNode.prototype.updateParentsPosition = function(y, align) {
-      var center, father, left, mother, right;
+      var a, b, father, left, mother, offset, parentsCenter, right, v, w;
       if (align == null) {
         align = 'center';
       }
       father = this.person.parentRelation.husband;
       mother = this.person.parentRelation.wife;
       if (this.person.siblings().length === 0) {
-        center = this.x;
+        parentsCenter = this.x;
       } else {
-        right = father.node.rightMostNode();
-        left = father.node.leftMostNode();
-        center = left + (right - left) / 2;
+        right = father.node.rightMostNodeX();
+        left = father.node.leftMostNodeX();
+        parentsCenter = left + (right - left) / 2;
       }
-      if (align === 'left') {
-        center = center - Constants.margin / 2 - Constants.width / 2;
-      } else if (align === 'right') {
-        center = center + Constants.margin / 2 + Constants.width / 2;
+      if (align === 'left' || align === 'right') {
+        father.node.updateTopPeople();
+        mother.node.updateTopPeople();
+        a = this.leftMostParentNodeX() - Constants.width / 2;
+        b = this.rightMostParentNodeX() + Constants.width / 2;
+        console.log("-- " + this.person.name);
+        console.log("left " + a);
+        console.log("right " + b);
+        if (align === 'left') {
+          console.log("HELP");
+          parentsCenter = Math.min(this.x + Constants.width / 2 - (b - a) / 2, parentsCenter);
+        } else if (align === 'right') {
+          offset = 0;
+          console.log(v = parentsCenter - a);
+          console.log(w = parentsCenter - this.x + Constants.width / 2);
+          console.log("offset " + (v - w));
+          console.log("debut: " + (this.x - Constants.width / 2));
+          console.log("fin: " + (this.x - Constants.width / a));
+          if (Math.abs(this.x - a) < 1) {
+            offset = v - w;
+          } else {
+            offset = 0;
+          }
+          parentsCenter = Math.max(this.x - Constants.width / 2 + (b - a) / 2 + offset, parentsCenter);
+        }
+        console.log("x : " + this.x);
+        console.log("size: " + (b - a));
+        console.log("center " + parentsCenter);
       }
-      father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y);
-      mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y);
+      father.node.setPosition(parentsCenter - Constants.margin / 2 - Constants.width / 2, y);
+      mother.node.setPosition(parentsCenter + Constants.margin / 2 + Constants.width / 2, y);
       if (father.parentRelation && mother.parentRelation) {
         father.node.updateTopPeople('left');
         return mother.node.updateTopPeople('right');

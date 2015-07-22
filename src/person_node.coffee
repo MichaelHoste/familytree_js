@@ -122,9 +122,9 @@ class @PersonNode
         @vLine.position.y = y - Constants.height / 2
 
   # leftmost node (in himself, relations or children)
-  leftMostNode: ->
+  leftMostNodeX: ->
     if @person.partnerRelations.length
-      xArray      = _.collect(@person.partnerRelations[0].children, (child) -> child.node.leftMostNode())
+      xArray      = _.collect(@person.partnerRelations[0].children, (child) -> child.node.leftMostNodeX())
       partnerType = if @person.sex == 'M' then 'wife' else 'husband'
       partner     = @person.partnerRelations[0][partnerType]
       xArray.push(partner.node.x)
@@ -135,9 +135,9 @@ class @PersonNode
     _.min(xArray)
 
   # leftmost node (in himself, relations or children)
-  rightMostNode: ->
+  rightMostNodeX: ->
     if @person.partnerRelations.length
-      xArray      = _.collect(@person.partnerRelations[0].children, (child) -> child.node.rightMostNode())
+      xArray      = _.collect(@person.partnerRelations[0].children, (child) -> child.node.rightMostNodeX())
       partnerType = if @person.sex == 'M' then 'wife' else 'husband'
       partner     = @person.partnerRelations[0][partnerType]
       xArray.push(partner.node.x)
@@ -147,9 +147,47 @@ class @PersonNode
     xArray.push(@x)
     _.max(xArray)
 
+  # leftmost node (in parent's nodes)
+  leftMostParentNodeX: ->
+    peopleX = []
+
+    for parent in @person.parents()
+      peopleX.concat(_.collect(parent.siblings(), (person) -> person.node.x))
+
+    if @person.parentRelation
+      father = @person.parentRelation.husband
+      mother = @person.parentRelation.wife
+
+      peopleX.push(father.node.x) if father
+      peopleX.push(mother.node.x) if mother
+
+      peopleX.push(father.node.leftMostParentNodeX()) if father
+      peopleX.push(mother.node.leftMostParentNodeX()) if mother
+
+    _.min(peopleX)
+
+  # rightmost node (in parent's nodes)
+  rightMostParentNodeX: ->
+    peopleX = []
+
+    for parent in @person.parents()
+      peopleX.concat(_.collect(parent.siblings(), (person) -> person.node.x))
+
+    if @person.parentRelation
+      father = @person.parentRelation.husband
+      mother = @person.parentRelation.wife
+
+      peopleX.push(father.node.x) if father
+      peopleX.push(mother.node.x) if mother
+
+      peopleX.push(father.node.rightMostParentNodeX()) if father
+      peopleX.push(mother.node.rightMostParentNodeX()) if mother
+
+    _.max(peopleX)
+
   # size of himself, relations and children
   size: ->
-    @rightMostNode() - @leftMostNode() + Constants.width
+    @rightMostNodeX() - @leftMostNodeX() + Constants.width
 
   hideRectangle: ->
     @graphics.position.x = -1000
@@ -222,7 +260,7 @@ class @PersonNode
           start        = start - childrenSize / 2 + Constants.width / 2
 
         for child, i in children
-          offset = child.node.x - child.node.leftMostNode()
+          offset = child.node.x - child.node.leftMostNodeX()
 
           child.node.setPosition(start + offset, @y + Constants.height / 2 + Constants.verticalMargin)
           child.node.updateBottomPeople()
@@ -262,12 +300,12 @@ class @PersonNode
     # Update positions of sibblings (to know the global size of this part)
     for child, i in children
       if i != personIndex
-        child.node.setPosition(@x - 1000, @y)
+        child.node.setPosition(@x - 1000, @y, false)
         child.node.updateBottomPeople()
 
     # Display left siblings and descendants
     if align == 'center' || align == 'left'
-      leftDistance = @x - @leftMostNode() + Constants.width / 2
+      leftDistance = @x - @leftMostNodeX() + Constants.width / 2
       offset       = 0
 
       startIndex = if align == 'center' then personIndex else children.length-1
@@ -275,14 +313,14 @@ class @PersonNode
       for i in [startIndex..0]
         if i != personIndex
           child = children[i]
-          childrenRightDistance = child.node.rightMostNode() - child.node.x + Constants.width / 2
+          childrenRightDistance = child.node.rightMostNodeX() - child.node.x + Constants.width / 2
           child.node.setPosition(@x - (leftDistance + childrenRightDistance + Constants.margin + offset), @y)
           child.node.updateBottomPeople()
           offset = offset + child.node.size() + Constants.margin
 
     # Display right siblings and descendants
     if align == 'center' || align == 'right'
-      rightDistance = @rightMostNode() - @x + Constants.width / 2
+      rightDistance = @rightMostNodeX() - @x + Constants.width / 2
       offset        = 0
 
       startIndex = if align == 'center' then personIndex else 0
@@ -290,7 +328,7 @@ class @PersonNode
       for i in [startIndex..children.length-1]
         if i != personIndex
           child = children[i]
-          childrenLeftDistance = child.node.x - child.node.leftMostNode() + Constants.width / 2
+          childrenLeftDistance = child.node.x - child.node.leftMostNodeX() + Constants.width / 2
           child.node.setPosition(@x + (rightDistance + childrenLeftDistance + Constants.margin + offset), @y)
           child.node.updateBottomPeople()
           offset = offset + child.node.size() + Constants.margin
@@ -300,30 +338,49 @@ class @PersonNode
     mother = @person.parentRelation.wife
 
     if @person.siblings().length == 0
-      center = @x
+      parentsCenter = @x
     else
-      right  = father.node.rightMostNode()
-      left   = father.node.leftMostNode()
-      center = left + (right - left) / 2
+      right        = father.node.rightMostNodeX()
+      left         = father.node.leftMostNodeX()
+      parentsCenter = left + (right - left) / 2
 
     ##
-    # if align == 'left' || align == 'right'
-    # # Update positions of top people (to know the global size of this part)
-    #   father.node.setPosition(@x - 1000, @y)
-    #   father.node.updateTopPeople()
-    #   mother.node.setPosition(@x - 1000, @y)
-    #   mother.node.updateTopPeople()
+    if align == 'left' || align == 'right'
+      # Update positions of top people (to know the global size of this part)
+      #father.node.setPosition(@x - 1000, @y)
+      father.node.updateTopPeople()
+      #mother.node.setPosition(@x - 1000, @y)
+      mother.node.updateTopPeople()
 
-    #   @leftMostParentNode
-    # ##
+      a = @leftMostParentNodeX()  - Constants.width / 2
+      b = @rightMostParentNodeX() + Constants.width / 2
+      console.log "-- #{@person.name}"
+      console.log "left #{a}"
+      console.log "right #{b}"
+    ##
 
-    if align == 'left'
-      center = center - Constants.margin / 2 - Constants.width / 2
-    else if align == 'right'
-      center = center + Constants.margin / 2 + Constants.width / 2
+      if align == 'left'
+        console.log "HELP"
+        parentsCenter = Math.min(@x + Constants.width / 2 - (b-a) / 2, parentsCenter)
+      else if align == 'right'
+        offset = 0#(parentsCenter - a) - (parentsCenter - @x - Constants.width / 2)#@x - a - Constants.width / 2
+        console.log v = (parentsCenter - a)
+        console.log w = (parentsCenter - @x + Constants.width / 2)
+        console.log "offset #{v - w}"
+        console.log "debut: #{@x - Constants.width / 2}"
+        console.log "fin: #{@x - Constants.width / a}"
+        if Math.abs(@x - a) < 1
+          offset = (v-w)
+        else
+          offset = 0
+        parentsCenter = Math.max(@x - Constants.width / 2 + (b-a) / 2 + offset, parentsCenter)
 
-    father.node.setPosition(center - Constants.margin / 2 - Constants.width / 2, y)
-    mother.node.setPosition(center + Constants.margin / 2 + Constants.width / 2, y)
+      console.log "x : #{@x}"
+      console.log "size: #{(b-a)}"
+      console.log "center #{parentsCenter}"
+
+    father.node.setPosition(parentsCenter - Constants.margin / 2 - Constants.width / 2, y)
+    mother.node.setPosition(parentsCenter + Constants.margin / 2 + Constants.width / 2, y)
 
     # If got 2 parents, align all father/mother sibings on the left/right to make sense
     if father.parentRelation && mother.parentRelation

@@ -31,7 +31,10 @@ class @Person
     @father().parents().concat(@mother().parents())
 
   siblings: ->
-    _.difference(@parentRelation.children, [this])
+    if @parentRelation
+      _.difference(@parentRelation.children, [this])
+    else
+      []
 
   niblings: ->
     _.flatten(_.collect(@siblings(), (sibling) ->
