@@ -1,11 +1,14 @@
 class @FamilyTree
 
-  constructor: (width, height, people = [], root = undefined, saveData = undefined) ->
-    @width    = width
-    @height   = height
-    @people   = people
-    @root     = root
-    @saveData = saveData
+  constructor: (options = {}) ->
+    @width    = options.width
+    @height   = options.height
+    @people   = options.people || []
+    @root     = options.root
+    @saveData = options.saveData
+
+    if options.serializedData
+      @deserialize(options.serializedData)
 
     if @people.length == 0
       name  = prompt("What's the first person's name?", 'Me')
