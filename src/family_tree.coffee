@@ -8,14 +8,25 @@ class @FamilyTree
     @saveData = options.saveData
     @stage    = new PIXI.Container()
 
+    @onCreate = (person) =>
+      options.onCreate(person) if options.onCreate
+      @save()
+
+    @onEdit   = (person) =>
+      options.onEdit(person) if options.onEdit
+
+    @onDelete = (person) =>
+      options.onDelete(person) if options.onDelete
+      @save()
+
     if options.serializedData
       @deserialize(options.serializedData)
 
     if @people.length == 0
       name  = prompt("What's the first person's name?", 'Me')
       @root = new Person(name, 'M')
-
       @people.push(@root)
+      @onCreate(@root)
 
     if $('#family-tree').length
       @initializeRenderer()
@@ -97,7 +108,9 @@ class @FamilyTree
       @cleanTree()
       parents = @root.addParents(father_name, mother_name)
       @people.push(parents[0])
+      @onCreate(parents[0])
       @people.push(parents[1])
+      @onCreate(parents[1])
       @refreshStage()
       @refreshMenu()
       @save()
@@ -110,6 +123,7 @@ class @FamilyTree
       @cleanTree()
       brother = @root.addBrother(name)
       @people.push(brother)
+      @onCreate(brother)
       @refreshStage()
       @refreshMenu()
       @save()
@@ -122,6 +136,7 @@ class @FamilyTree
       @cleanTree()
       sister = @root.addSister(name)
       @people.push(sister)
+      @onCreate(sister)
       @refreshStage()
       @refreshMenu()
       @save()
@@ -138,6 +153,7 @@ class @FamilyTree
       son         = @root.relationWith(partner).addChild(name, 'M')
 
       @people.push(son)
+      @onCreate(son)
       @refreshStage()
       @refreshMenu()
       @save()
@@ -154,44 +170,53 @@ class @FamilyTree
       daughter     = @root.relationWith(partner).addChild(name, 'F')
 
       @people.push(daughter)
+      @onCreate(daughter)
       @refreshStage()
       @refreshMenu()
       @save()
     )
 
+    $('#family-tree-panel').on('click', 'button[data-action="edit"]', (event) =>
+      @onEdit(@root)
+    )
+
     $('#family-tree-panel').on('click', 'button[data-action="remove"]', (event) =>
-      @cleanTree()
+      if confirm("Remove #{@root.name}?")
+        @cleanTree()
 
-      @people = _.without(@people, @root)
+        @people = _.without(@people, @root)
 
-      # remove person without parent
-      if @root.parents().length == 0
-        for partnerRelation in @root.partnerRelations
-          if @root.sex == 'F'
-            partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation)
-          else if @root.sex == 'M'
-            partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation)
-      # remove person without children
-      else if @root.children().length == 0
-        @root.parentRelation.children = _.without(@root.parentRelation.children, @root)
+        # remove person without parent
+        if @root.parents().length == 0
+          for partnerRelation in @root.partnerRelations
+            if @root.sex == 'F'
+              partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation)
+            else if @root.sex == 'M'
+              partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation)
+        # remove person without children
+        else if @root.children().length == 0
+          @root.parentRelation.children = _.without(@root.parentRelation.children, @root)
 
-      # new root
-      if @people.length
-        if @root.parentRelation
-          @root = @root.father()
+        @onDelete(@root)
+
+        # new root
+        if @people.length
+          if @root.parentRelation
+            @root = @root.father()
+          else
+            if @root.sex == 'M'
+              @root = @root.partnerRelations[0].wife
+            else if @root.sex == 'F'
+              @root = @root.partnerRelations[0].husband
         else
-          if @root.sex == 'M'
-            @root = @root.partnerRelations[0].wife
-          else if @root.sex == 'F'
-            @root = @root.partnerRelations[0].husband
-      else
-        name  = prompt("What's the first person's name?", 'Me')
-        @root = new Person(name, 'M')
-        @people.push(@root)
+          name  = prompt("What's the first person's name?", 'Me')
+          @root = new Person(name, 'M')
+          @people.push(@root)
+          @onCreate(@root)
 
-      @refreshStage()
-      @refreshMenu()
-      @save()
+        @refreshStage()
+        @refreshMenu()
+        @save()
     )
 
   relations: ->
@@ -245,8 +270,12 @@ class @FamilyTree
       $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"#{partner.uuid}\">Add son with #{partner.name}</button>")
       $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">Add daughter with #{partner.name}</button>")
 
+    $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">Edit</button>")
+
     if !@root.partnerRelations.length || @root.children().length == 0
       $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">Remove</button>")
+
+
 
   cleanTree: ->
     for person in @people

@@ -36,6 +36,29 @@
       this.root = options.root;
       this.saveData = options.saveData;
       this.stage = new PIXI.Container();
+      this.onCreate = (function(_this) {
+        return function(person) {
+          if (options.onCreate) {
+            options.onCreate(person);
+          }
+          return _this.save();
+        };
+      })(this);
+      this.onEdit = (function(_this) {
+        return function(person) {
+          if (options.onEdit) {
+            return options.onEdit(person);
+          }
+        };
+      })(this);
+      this.onDelete = (function(_this) {
+        return function(person) {
+          if (options.onDelete) {
+            options.onDelete(person);
+          }
+          return _this.save();
+        };
+      })(this);
       if (options.serializedData) {
         this.deserialize(options.serializedData);
       }
@@ -43,6 +66,7 @@
         name = prompt("What's the first person's name?", 'Me');
         this.root = new Person(name, 'M');
         this.people.push(this.root);
+        this.onCreate(this.root);
       }
       if ($('#family-tree').length) {
         this.initializeRenderer();
@@ -131,7 +155,9 @@
           _this.cleanTree();
           parents = _this.root.addParents(father_name, mother_name);
           _this.people.push(parents[0]);
+          _this.onCreate(parents[0]);
           _this.people.push(parents[1]);
+          _this.onCreate(parents[1]);
           _this.refreshStage();
           _this.refreshMenu();
           return _this.save();
@@ -145,6 +171,7 @@
           _this.cleanTree();
           brother = _this.root.addBrother(name);
           _this.people.push(brother);
+          _this.onCreate(brother);
           _this.refreshStage();
           _this.refreshMenu();
           return _this.save();
@@ -158,6 +185,7 @@
           _this.cleanTree();
           sister = _this.root.addSister(name);
           _this.people.push(sister);
+          _this.onCreate(sister);
           _this.refreshStage();
           _this.refreshMenu();
           return _this.save();
@@ -175,6 +203,7 @@
           });
           son = _this.root.relationWith(partner).addChild(name, 'M');
           _this.people.push(son);
+          _this.onCreate(son);
           _this.refreshStage();
           _this.refreshMenu();
           return _this.save();
@@ -192,47 +221,57 @@
           });
           daughter = _this.root.relationWith(partner).addChild(name, 'F');
           _this.people.push(daughter);
+          _this.onCreate(daughter);
           _this.refreshStage();
           _this.refreshMenu();
           return _this.save();
         };
       })(this));
+      $('#family-tree-panel').on('click', 'button[data-action="edit"]', (function(_this) {
+        return function(event) {
+          return _this.onEdit(_this.root);
+        };
+      })(this));
       return $('#family-tree-panel').on('click', 'button[data-action="remove"]', (function(_this) {
         return function(event) {
           var j, len, name, partnerRelation, ref;
-          _this.cleanTree();
-          _this.people = _.without(_this.people, _this.root);
-          if (_this.root.parents().length === 0) {
-            ref = _this.root.partnerRelations;
-            for (j = 0, len = ref.length; j < len; j++) {
-              partnerRelation = ref[j];
-              if (_this.root.sex === 'F') {
-                partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation);
-              } else if (_this.root.sex === 'M') {
-                partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation);
+          if (confirm("Remove " + _this.root.name + "?")) {
+            _this.cleanTree();
+            _this.people = _.without(_this.people, _this.root);
+            if (_this.root.parents().length === 0) {
+              ref = _this.root.partnerRelations;
+              for (j = 0, len = ref.length; j < len; j++) {
+                partnerRelation = ref[j];
+                if (_this.root.sex === 'F') {
+                  partnerRelation.husband.partnerRelations = _.without(partnerRelation.husband.partnerRelations, partnerRelation);
+                } else if (_this.root.sex === 'M') {
+                  partnerRelation.wife.partnerRelations = _.without(partnerRelation.wife.partnerRelations, partnerRelation);
+                }
               }
+            } else if (_this.root.children().length === 0) {
+              _this.root.parentRelation.children = _.without(_this.root.parentRelation.children, _this.root);
             }
-          } else if (_this.root.children().length === 0) {
-            _this.root.parentRelation.children = _.without(_this.root.parentRelation.children, _this.root);
-          }
-          if (_this.people.length) {
-            if (_this.root.parentRelation) {
-              _this.root = _this.root.father();
+            _this.onDelete(_this.root);
+            if (_this.people.length) {
+              if (_this.root.parentRelation) {
+                _this.root = _this.root.father();
+              } else {
+                if (_this.root.sex === 'M') {
+                  _this.root = _this.root.partnerRelations[0].wife;
+                } else if (_this.root.sex === 'F') {
+                  _this.root = _this.root.partnerRelations[0].husband;
+                }
+              }
             } else {
-              if (_this.root.sex === 'M') {
-                _this.root = _this.root.partnerRelations[0].wife;
-              } else if (_this.root.sex === 'F') {
-                _this.root = _this.root.partnerRelations[0].husband;
-              }
+              name = prompt("What's the first person's name?", 'Me');
+              _this.root = new Person(name, 'M');
+              _this.people.push(_this.root);
+              _this.onCreate(_this.root);
             }
-          } else {
-            name = prompt("What's the first person's name?", 'Me');
-            _this.root = new Person(name, 'M');
-            _this.people.push(_this.root);
+            _this.refreshStage();
+            _this.refreshMenu();
+            return _this.save();
           }
-          _this.refreshStage();
-          _this.refreshMenu();
-          return _this.save();
         };
       })(this));
     };
@@ -309,6 +348,7 @@
         $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"" + partner.uuid + "\">Add son with " + partner.name + "</button>");
         $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"" + partner.uuid + "\">Add daughter with " + partner.name + "</button>");
       }
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">Edit</button>");
       if (!this.root.partnerRelations.length || this.root.children().length === 0) {
         return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">Remove</button>");
       }
