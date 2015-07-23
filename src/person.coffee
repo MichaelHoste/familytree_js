@@ -52,8 +52,8 @@ class @Person
     )
 
   addParents: (fatherName = undefined, motherName = undefined) ->
-    fatherName = if fatherName then fatherName else "Father of #{@name}"
-    motherName = if motherName then motherName else "Mother of #{@name}"
+    fatherName = if fatherName then fatherName else Constants.t("Father of #{@name}", "Père de #{@name}")
+    motherName = if motherName then motherName else Constants.t("Mother of #{@name}", "Mère de #{@name}")
 
     @parentRelation = new Relation()
     @parentRelation.children.push(this)
@@ -69,7 +69,7 @@ class @Person
     [@parentRelation.husband, @parentRelation.wife]
 
   addBrother: (name = undefined) ->
-    name = if name then name else "Brother of #{@name}"
+    name = if name then name else Constants.t("Brother of #{@name}", "Fère de #{@name}")
 
     if @parentRelation
       @parentRelation.addChild(name, 'M')
@@ -77,7 +77,7 @@ class @Person
       undefined
 
   addSister: (name = undefined) ->
-    name = if name then name else "Sister of #{@name}"
+    name = if name then name else Constants.t("Sister of #{@name}", "Soeur de #{@name}")
 
     if @parentRelation
       @parentRelation.addChild(name, 'F')
@@ -89,14 +89,14 @@ class @Person
 
     if @sex == 'M'
       relation.husband = this
-      wifeName         = if name then name else "Wife of #{@name}"
+      wifeName         = if name then name else Constants.t("Wife of #{@name}", "Femme de #{@name}")
       relation.wife    = new Person(wifeName, 'F')
       relation.wife.partnerRelations.push(relation)
       @partnerRelations.push(relation)
       return relation.wife
     else
       relation.wife    = this
-      husbandName      = if name then name else "Husband of #{@name}"
+      husbandName      = if name then name else Constants.t("Husband of #{@name}", "Mari du #{@name}")
       relation.husband = new Person(husbandName, 'M')
       relation.husband.partnerRelations.push(relation)
       @partnerRelations.push(relation)

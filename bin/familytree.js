@@ -19,6 +19,14 @@
 
     Constants.verticalMargin = Constants.margin * 1.5;
 
+    Constants.t = function(enText, frText) {
+      if (this.locale === 'en') {
+        return enText;
+      } else {
+        return frText;
+      }
+    };
+
     return Constants;
 
   })();
@@ -64,7 +72,7 @@
         this.deserialize(options.serializedData);
       }
       if (this.people.length === 0) {
-        name = prompt(this.t("What's the first person's name?", "Quel est le nom de la première personne ?"), 'Me');
+        name = prompt(Constants.t("What's the first person's name?", "Quel est le nom de la première personne ?"), 'Me');
         this.root = new Person(name, 'M');
         this.people.push(this.root);
         this.onCreate(this.root);
@@ -133,11 +141,11 @@
         return function() {
           var name, partner, suggestion;
           if (_this.root.sex === 'M') {
-            suggestion = _this.t("Wife of " + _this.root.name, "Femme de " + _this.root.name);
+            suggestion = Constants.t("Wife of " + _this.root.name, "Femme de " + _this.root.name);
           } else if (_this.root.sex === 'F') {
-            suggestion = _this.t("Husband of " + _this.root.name, "Mari de " + _this.root.name);
+            suggestion = Constants.t("Husband of " + _this.root.name, "Mari de " + _this.root.name);
           }
-          name = prompt(_this.t("What's the partner's name?", "Quel est le nom du partenaire ?"), suggestion);
+          name = prompt(Constants.t("What's the partner's name?", "Quel est le nom du partenaire ?"), suggestion);
           _this.cleanTree();
           partner = _this.root.addPartner(name);
           _this.people.push(partner);
@@ -149,10 +157,10 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-parents"]', (function(_this) {
         return function() {
           var father_name, father_suggestion, mother_name, mother_suggestion, parents;
-          father_suggestion = _this.t("Father of " + _this.root.name, "Père de " + _this.root.name);
-          father_name = prompt(_this.t("What's the father's name?", "Quel est le nom du père ?"), father_suggestion);
-          mother_suggestion = _this.t("Mother of " + _this.root.name, "Mère de " + _this.root.name);
-          mother_name = prompt(_this.t("What's the mother's name?", "Quel est le nom de la mère ?"), mother_suggestion);
+          father_suggestion = Constants.t("Father of " + _this.root.name, "Père de " + _this.root.name);
+          father_name = prompt(Constants.t("What's the father's name?", "Quel est le nom du père ?"), father_suggestion);
+          mother_suggestion = Constants.t("Mother of " + _this.root.name, "Mère de " + _this.root.name);
+          mother_name = prompt(Constants.t("What's the mother's name?", "Quel est le nom de la mère ?"), mother_suggestion);
           _this.cleanTree();
           parents = _this.root.addParents(father_name, mother_name);
           _this.people.push(parents[0]);
@@ -167,8 +175,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-brother"]', (function(_this) {
         return function() {
           var brother, name, suggestion;
-          suggestion = _this.t("Brother of " + _this.root.name, "Frère de " + _this.root.name);
-          name = prompt(_this.t("What's the brother's name?", "Quel est le nom du frère ?"), suggestion);
+          suggestion = Constants.t("Brother of " + _this.root.name, "Frère de " + _this.root.name);
+          name = prompt(Constants.t("What's the brother's name?", "Quel est le nom du frère ?"), suggestion);
           _this.cleanTree();
           brother = _this.root.addBrother(name);
           _this.people.push(brother);
@@ -181,8 +189,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-sister"]', (function(_this) {
         return function() {
           var name, sister, suggestion;
-          suggestion = _this.t("Sister of " + _this.root.name, "Soeur de " + _this.root.name);
-          name = prompt(_this.t("What's the sister's name?", "Quel est le nom de la soeur ?"), suggestion);
+          suggestion = Constants.t("Sister of " + _this.root.name, "Soeur de " + _this.root.name);
+          name = prompt(Constants.t("What's the sister's name?", "Quel est le nom de la soeur ?"), suggestion);
           _this.cleanTree();
           sister = _this.root.addSister(name);
           _this.people.push(sister);
@@ -195,8 +203,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-son"]', (function(_this) {
         return function(event) {
           var name, partner, partnerUuid, son, suggestion;
-          suggestion = _this.t("Son of " + _this.root.name, "Fils de " + _this.root.name);
-          name = prompt(_this.t("What's the son's name?", "Quel est le nom du fils ?"), suggestion);
+          suggestion = Constants.t("Son of " + _this.root.name, "Fils de " + _this.root.name);
+          name = prompt(Constants.t("What's the son's name?", "Quel est le nom du fils ?"), suggestion);
           _this.cleanTree();
           partnerUuid = $(event.target).data('with');
           partner = _.findWhere(_this.people, {
@@ -213,8 +221,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-daughter"]', (function(_this) {
         return function(event) {
           var daughter, name, partner, partnerUuid, suggestion;
-          suggestion = _this.t("Daughter of " + _this.root.name, "Fille de " + _this.root.name);
-          name = prompt(_this.t("What's the daughter's name?", "Quel est le nom de la fille ?"), suggestion);
+          suggestion = Constants.t("Daughter of " + _this.root.name, "Fille de " + _this.root.name);
+          name = prompt(Constants.t("What's the daughter's name?", "Quel est le nom de la fille ?"), suggestion);
           _this.cleanTree();
           partnerUuid = $(event.target).data('with');
           partner = _.findWhere(_this.people, {
@@ -264,7 +272,7 @@
                 }
               }
             } else {
-              name = prompt(_this.t("What's the first person's name?", "Quel est le nom de la première personne ?"), _this.t("Me", "Moi"));
+              name = prompt(Constants.t("What's the first person's name?", "Quel est le nom de la première personne ?"), Constants.t("Me", "Moi"));
               _this.root = new Person(name, 'M');
               _this.people.push(_this.root);
               _this.onCreate(_this.root);
@@ -335,25 +343,25 @@
     FamilyTree.prototype.refreshMenu = function() {
       var daughterCaption, j, len, partner, ref, sonCaption;
       $("#family-tree-panel div").empty();
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + this.t("Add Partner", "Ajouter un partenaire") + '</button>');
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + Constants.t("Add Partner", "Ajouter un partenaire") + '</button>');
       if (this.root.parentRelation) {
-        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + this.t("Add Brother", "Ajouter un frère") + '</button>');
-        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + this.t("Add Sister", "Ajouter une soeur") + '</button>');
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + Constants.t("Add Brother", "Ajouter un frère") + '</button>');
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + Constants.t("Add Sister", "Ajouter une soeur") + '</button>');
       }
       if (!this.root.parentRelation) {
-        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">' + this.t("Add Parents", "Ajouter les parents") + '</button>');
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">' + Constants.t("Add Parents", "Ajouter les parents") + '</button>');
       }
       ref = this.root.partners();
       for (j = 0, len = ref.length; j < len; j++) {
         partner = ref[j];
-        sonCaption = this.t("Add son with " + partner.name, "Ajouter un fils avec " + partner.name);
-        daughterCaption = this.t("Add daughter with " + partner.name, "Aouter une fille avec " + partner.name);
+        sonCaption = Constants.t("Add son with " + partner.name, "Ajouter un fils avec " + partner.name);
+        daughterCaption = Constants.t("Add daughter with " + partner.name, "Aouter une fille avec " + partner.name);
         $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"" + partner.uuid + "\">" + sonCaption + "</button>");
         $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"" + partner.uuid + "\">" + daughterCaption + "</button>");
       }
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + this.t("Edit", "Modifier") + "</button>");
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + Constants.t("Edit", "Modifier") + "</button>");
       if (!this.root.partnerRelations.length || this.root.children().length === 0) {
-        return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + this.t("Delete", "Supprimer") + "</button>");
+        return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + Constants.t("Delete", "Supprimer") + "</button>");
       }
     };
 
@@ -481,14 +489,6 @@
       return this.renderer.render(this.stage);
     };
 
-    FamilyTree.prototype.t = function(enText, frText) {
-      if (this.locale === 'en') {
-        return enText;
-      } else {
-        return frText;
-      }
-    };
-
     return FamilyTree;
 
   })();
@@ -574,8 +574,8 @@
       if (motherName == null) {
         motherName = void 0;
       }
-      fatherName = fatherName ? fatherName : "Father of " + this.name;
-      motherName = motherName ? motherName : "Mother of " + this.name;
+      fatherName = fatherName ? fatherName : Constants.t("Father of " + this.name, "Père de " + this.name);
+      motherName = motherName ? motherName : Constants.t("Mother of " + this.name, "Mère de " + this.name);
       this.parentRelation = new Relation();
       this.parentRelation.children.push(this);
       this.parentRelation.husband = new Person(fatherName, 'M');
@@ -589,7 +589,7 @@
       if (name == null) {
         name = void 0;
       }
-      name = name ? name : "Brother of " + this.name;
+      name = name ? name : Constants.t("Brother of " + this.name, "Fère de " + this.name);
       if (this.parentRelation) {
         return this.parentRelation.addChild(name, 'M');
       } else {
@@ -601,7 +601,7 @@
       if (name == null) {
         name = void 0;
       }
-      name = name ? name : "Sister of " + this.name;
+      name = name ? name : Constants.t("Sister of " + this.name, "Soeur de " + this.name);
       if (this.parentRelation) {
         return this.parentRelation.addChild(name, 'F');
       } else {
@@ -617,14 +617,14 @@
       relation = new Relation();
       if (this.sex === 'M') {
         relation.husband = this;
-        wifeName = name ? name : "Wife of " + this.name;
+        wifeName = name ? name : Constants.t("Wife of " + this.name, "Femme de " + this.name);
         relation.wife = new Person(wifeName, 'F');
         relation.wife.partnerRelations.push(relation);
         this.partnerRelations.push(relation);
         return relation.wife;
       } else {
         relation.wife = this;
-        husbandName = name ? name : "Husband of " + this.name;
+        husbandName = name ? name : Constants.t("Husband of " + this.name, "Mari du " + this.name);
         relation.husband = new Person(husbandName, 'M');
         relation.husband.partnerRelations.push(relation);
         this.partnerRelations.push(relation);
