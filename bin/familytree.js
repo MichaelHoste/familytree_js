@@ -349,7 +349,9 @@
     FamilyTree.prototype.refreshMenu = function() {
       var daughterCaption, j, len, partner, ref, sonCaption;
       $("#family-tree-panel div").empty();
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + this.t("Add Partner", "Ajouter un partenaire") + '</button>');
+      if (!this.root.partnerRelations.length) {
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + this.t("Add Partner", "Ajouter un partenaire") + '</button>');
+      }
       if (this.root.parentRelation) {
         $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + this.t("Add Brother", "Ajouter un frère") + '</button>');
         $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + this.t("Add Sister", "Ajouter une soeur") + '</button>');

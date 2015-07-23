@@ -261,7 +261,9 @@ class @FamilyTree
 
   refreshMenu: ->
     $("#family-tree-panel div").empty()
-    $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + @t("Add Partner", "Ajouter un partenaire") + '</button>')
+
+    if !@root.partnerRelations.length
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + @t("Add Partner", "Ajouter un partenaire") + '</button>')
 
     if @root.parentRelation
       $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + @t("Add Brother", "Ajouter un frère") + '</button>')
