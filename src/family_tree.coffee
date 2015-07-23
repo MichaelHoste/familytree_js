@@ -63,16 +63,16 @@ class @FamilyTree
       @isDown       = true
       @startX       = @x
       @startY       = @y
-      @startOffsetX = mouseData.data.originalEvent.x
-      @startOffsetY = mouseData.data.originalEvent.y
+      @startOffsetX = mouseData.data.global.x
+      @startOffsetY = mouseData.data.global.y
 
-    onUp = =>
+    onUp = (mouseData) =>
       @isDown = false
 
     onMove = (mouseData) =>
       if @isDown
-        @x = @startX + mouseData.data.originalEvent.x - @startOffsetX
-        @y = @startY + mouseData.data.originalEvent.y - @startOffsetY
+        @x = @startX + mouseData.data.global.x - @startOffsetX
+        @y = @startY + mouseData.data.global.y - @startOffsetY
         @animate()
 
     @background.on('mousedown',       onDown)
@@ -82,6 +82,7 @@ class @FamilyTree
     #@background.on('mouseupoutside',  onUp)
     #@background.on('touchendoutside', onUp)
     @background.on('mousemove',       onMove)
+    @background.on('touchmove',       onMove)
 
   bindMenu: ->
     $('#family-tree-panel').on('click', 'button[data-action="add-partner"]', =>

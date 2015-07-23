@@ -107,16 +107,16 @@
         _this.isDown = true;
         _this.startX = _this.x;
         _this.startY = _this.y;
-        _this.startOffsetX = mouseData.data.originalEvent.x;
-        return _this.startOffsetY = mouseData.data.originalEvent.y;
+        _this.startOffsetX = mouseData.data.global.x;
+        return _this.startOffsetY = mouseData.data.global.y;
       };
-      onUp = function() {
+      onUp = function(mouseData) {
         return _this.isDown = false;
       };
       onMove = function(mouseData) {
         if (_this.isDown) {
-          _this.x = _this.startX + mouseData.data.originalEvent.x - _this.startOffsetX;
-          _this.y = _this.startY + mouseData.data.originalEvent.y - _this.startOffsetY;
+          _this.x = _this.startX + mouseData.data.global.x - _this.startOffsetX;
+          _this.y = _this.startY + mouseData.data.global.y - _this.startOffsetY;
           return _this.animate();
         }
       };
@@ -124,7 +124,8 @@
       this.background.on('touchstart', onDown);
       this.background.on('mouseup', onUp);
       this.background.on('touchend', onUp);
-      return this.background.on('mousemove', onMove);
+      this.background.on('mousemove', onMove);
+      return this.background.on('touchmove', onMove);
     };
 
     FamilyTree.prototype.bindMenu = function() {
@@ -696,7 +697,8 @@
     };
 
     PersonNode.prototype.bindRectangle = function() {
-      var _this = this;
+      var onClick,
+        _this = this;
       this.graphics.interactive = true;
       this.graphics.on('mouseover', function() {
         return $('#family-tree').css('cursor', 'pointer');
@@ -708,13 +710,12 @@
       this.graphics.on('touchstart', this.stage.background._events.touchstart.fn);
       this.graphics.on('mouseup', this.stage.background._events.mouseup.fn);
       this.graphics.on('touchend', this.stage.background._events.touchend.fn);
-      return this.graphics.on('click', function(mouseData) {
-        var event, familyTree, moveX, moveY;
-        event = mouseData.data.originalEvent;
+      onClick = function(mouseData) {
+        var familyTree, moveX, moveY;
         familyTree = _this.stage.familyTree;
-        moveX = Math.abs(familyTree.startOffsetX - event.x);
-        moveY = Math.abs(familyTree.startOffsetY - event.y);
-        if (moveX + moveY < 10) {
+        moveX = Math.abs(familyTree.startOffsetX - mouseData.data.global.x);
+        moveY = Math.abs(familyTree.startOffsetY - mouseData.data.global.y);
+        if (moveX + moveY < 15) {
           familyTree.oldRootNode = familyTree.rootNode;
           familyTree.rootNode.root = false;
           familyTree.rootNode = _this;
@@ -726,7 +727,9 @@
           _this.displayTree(familyTree.x, familyTree.y);
           return familyTree.animate();
         }
-      });
+      };
+      this.graphics.on('click', onClick);
+      return this.graphics.on('tap', onClick);
     };
 
     PersonNode.prototype.setPosition = function(x, y, apply) {

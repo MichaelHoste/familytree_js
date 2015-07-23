@@ -92,14 +92,13 @@ class @PersonNode
     #@graphics.on('mouseupoutside',  @stage.background._events.mouseupoutside.fn)
     #@graphics.on('touchendoutside', @stage.background._events.touchendoutside.fn)
 
-    @graphics.on('click', (mouseData) =>
-      event      = mouseData.data.originalEvent
+    onClick = (mouseData) =>
       familyTree = @stage.familyTree
 
-      moveX = Math.abs(familyTree.startOffsetX - event.x)
-      moveY = Math.abs(familyTree.startOffsetY - event.y)
+      moveX = Math.abs(familyTree.startOffsetX - mouseData.data.global.x)
+      moveY = Math.abs(familyTree.startOffsetY - mouseData.data.global.y)
 
-      if moveX + moveY < 10
+      if moveX + moveY < 15
         familyTree.oldRootNode = familyTree.rootNode
 
         familyTree.rootNode.root = false
@@ -113,7 +112,9 @@ class @PersonNode
         familyTree.y = familyTree.height / 2
         @displayTree(familyTree.x, familyTree.y)
         familyTree.animate()
-    )
+
+    @graphics.on('click', onClick)
+    @graphics.on('tap', onClick)
 
   setPosition: (x, y, apply = true) ->
     @x = x
