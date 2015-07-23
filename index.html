@@ -77,7 +77,7 @@
 
     <script type="text/javascript">
       $(document).ready(function(){
-        people = [
+        var people = [
           homer        = new Person('Homer', 'M'),
           marge        = homer.addPartner('Marge Bouvier'),
           bart         = homer.relationWith(marge).addChild('Bart',   'M'),
@@ -95,12 +95,12 @@
           //nelsonBaby   = lisa.relationWith(nelson).addChild('Nelson Baby', 'M')
         ];
 
-        bob_marlaine  = jessica.addParents('Bob', 'Marlaine')
+        var bob_marlaine  = jessica.addParents('Bob', 'Marlaine')
 
         people.push(bob_marlaine[0])
         people.push(bob_marlaine[1])
 
-        familyTree = new FamilyTree({
+        var familyTree = new FamilyTree({
           width: window.innerWidth,
           height: window.innerHeight,
           people: people,

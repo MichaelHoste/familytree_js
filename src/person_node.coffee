@@ -41,6 +41,7 @@ class @PersonNode
       @vLine.moveTo(0, 0)
       @vLine.lineTo(0, -Constants.verticalMargin / 2)
       @stage.addChild(@vLine)
+      @hideVLine()
 
   drawGraphics: ->
     @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
@@ -214,15 +215,13 @@ class @PersonNode
     @root = true
 
     # Redraw this person with highlight
-    @graphics.clear
+    @graphics.clear()
     @drawGraphics()
 
     # Redraw old selected person to remove highlight
     if @stage.familyTree.oldRootNode
       @stage.familyTree.oldRootNode.graphics.clear()
       @stage.familyTree.oldRootNode.drawGraphics()
-
-    @stage.familyTree.renderer.render(@stage)
 
     @setPosition(x, y)
     @updateBottomPeople()
@@ -270,30 +269,33 @@ class @PersonNode
         partnerRelation.node.drawHLine()
 
   updateChildrenPositions: ->
-    for partnerRelation, i in @person.partnerRelations
-      if i == 0
-        husband  = partnerRelation.husband
-        wife     = partnerRelation.wife
-        children = partnerRelation.children
+    if @person.partnerRelations.length
+      partnerRelation = @person.partnerRelations[0]
+      husband         = partnerRelation.husband
+      wife            = partnerRelation.wife
+      children        = partnerRelation.children
 
-        start = (husband.node.x + wife.node.x) / 2
+      start = (husband.node.x + wife.node.x) / 2
 
-        if children.length == 1
-          start = start + Constants.width / 2 + Constants.margin / 2
+      if children.length == 1
+        #if children[0].sex == 'F' && children[0].partnerRelations.length > 0
+          #start = start - Constants.width / 2 - Constants.margin / 2
+        #else
+        start = start + Constants.width / 2 + Constants.margin / 2
 
-        childrenSize = partnerRelation.node.globalWidth()
-        start        = start - childrenSize / 2 + Constants.width / 2
+      childrenSize = partnerRelation.node.globalWidth()
+      start        = start - childrenSize / 2 + Constants.width / 2
 
-        for child, i in children
-          offset = child.node.x - child.node.leftMostNodeX()
+      for child, i in children
+        offset = child.node.x - child.node.leftMostNodeX()
 
-          child.node.setPosition(start + offset, @y + Constants.height / 2 + Constants.verticalMargin)
-          child.node.updateBottomPeople()
+        child.node.setPosition(start + offset, @y + Constants.height / 2 + Constants.verticalMargin)
+        child.node.updateBottomPeople()
 
-          if child.partnerRelations.length
-            start = start + child.partnerRelations[0].node.globalWidth() + Constants.margin
-          else
-            start = start + Constants.width + Constants.margin
+        if child.partnerRelations.length
+          start = start + child.partnerRelations[0].node.globalWidth() + Constants.margin
+        else
+          start = start + Constants.width + Constants.margin
 
   drawHorizontalLineBetweenChildren: ->
     for partnerRelation, i in @person.partnerRelations
@@ -372,35 +374,32 @@ class @PersonNode
     ##
     if align == 'left' || align == 'right'
       # Update positions of top people (to know the global size of this part)
-      # father.node.setPosition(@x - Constants.margin / 2, @y)
-      # mother.node.setPosition(@x + Constants.margin / 2, @y)
+      father.node.setPosition(@x - Constants.margin / 2, @y) # these starting positions have a
+      mother.node.setPosition(@x + Constants.margin / 2, @y) # big impact and we don't know why
+
       if father.parentRelation && mother.parentRelation
         father.node.updateTopPeople('left')
         mother.node.updateTopPeople('right')
-      # If only 1 parent (or 0), align him/her on the center
       else
         father.node.updateTopPeople('center')
         mother.node.updateTopPeople('center')
 
-      a = @leftMostParentNodeX()  - Constants.width / 2
-      b = @rightMostParentNodeX() + Constants.width / 2
-
-      # TODO : trouver offset et le mettre à la main sur chaque noeud montant
+      limitLeft   = @leftMostParentNodeX()  - Constants.width / 2
+      limitRight  = @rightMostParentNodeX() + Constants.width / 2
+      parentsSize = limitRight - limitLeft
 
       if align == 'left'
-        v = b  - parentsCenter
+        v = limitRight - parentsCenter
         w = @x - parentsCenter + Constants.width / 2
 
         offset = if Math.abs(v - w) > 1 then v - w else 0
-        console.log offset
-        parentsCenter = Math.min(@x + Constants.width / 2 - (b-a) / 2 - offset / 2, parentsCenter)
+        parentsCenter = Math.min(@x + Constants.width / 2 - parentsSize / 2 - offset / 2, parentsCenter)
       else if align == 'right'
-        v = parentsCenter - a
+        v = parentsCenter - limitLeft
         w = parentsCenter - @x - Constants.width / 2
 
-        offset = if Math.abs(w-v) > 1 then v - w else 0
-        console.log offset
-        parentsCenter = Math.max(@x - Constants.width / 2 + (b-a) / 2 + offset /2, parentsCenter)
+        offset = if Math.abs(w - v) > 1 then v - w else 0
+        parentsCenter = Math.max(@x - Constants.width / 2 + parentsSize / 2 + offset / 2, parentsCenter)
 
     father.node.setPosition(parentsCenter - Constants.margin / 2 - Constants.width / 2, y)
     mother.node.setPosition(parentsCenter + Constants.margin / 2 + Constants.width / 2, y)
