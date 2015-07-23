@@ -35,6 +35,7 @@
       this.people = options.people || [];
       this.root = options.root;
       this.saveData = options.saveData;
+      this.locale = options.locale || 'en';
       this.stage = new PIXI.Container();
       this.onCreate = (function(_this) {
         return function(person) {
@@ -63,7 +64,7 @@
         this.deserialize(options.serializedData);
       }
       if (this.people.length === 0) {
-        name = prompt("What's the first person's name?", 'Me');
+        name = prompt(this.t("What's the first person's name?", "Quel est le nom de la première personne ?"), 'Me');
         this.root = new Person(name, 'M');
         this.people.push(this.root);
         this.onCreate(this.root);
@@ -132,11 +133,11 @@
         return function() {
           var name, partner, suggestion;
           if (_this.root.sex === 'M') {
-            suggestion = "Wife of " + _this.root.name;
+            suggestion = _this.t("Wife of " + _this.root.name, "Femme de " + _this.root.name);
           } else if (_this.root.sex === 'F') {
-            suggestion = "Husband of " + _this.root.name;
+            suggestion = _this.t("Husband of " + _this.root.name, "Mari de " + _this.root.name);
           }
-          name = prompt("What's the partner's name?", suggestion);
+          name = prompt(_this.t("What's the partner's name?", "Quel est le nom du partenaire ?"), suggestion);
           _this.cleanTree();
           partner = _this.root.addPartner(name);
           _this.people.push(partner);
@@ -148,10 +149,10 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-parents"]', (function(_this) {
         return function() {
           var father_name, father_suggestion, mother_name, mother_suggestion, parents;
-          father_suggestion = "Father of " + _this.root.name;
-          father_name = prompt("What's the father's name?", father_suggestion);
-          mother_suggestion = "Mother of " + _this.root.name;
-          mother_name = prompt("What's the mother's name?", mother_suggestion);
+          father_suggestion = _this.t("Father of " + _this.root.name, "Père de " + _this.root.name);
+          father_name = prompt(_this.t("What's the father's name?", "Quel est le nom du père ?"), father_suggestion);
+          mother_suggestion = _this.t("Mother of " + _this.root.name, "Mère de " + _this.root.name);
+          mother_name = prompt(_this.t("What's the mother's name?", "Quel est le nom de la mère ?"), mother_suggestion);
           _this.cleanTree();
           parents = _this.root.addParents(father_name, mother_name);
           _this.people.push(parents[0]);
@@ -166,8 +167,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-brother"]', (function(_this) {
         return function() {
           var brother, name, suggestion;
-          suggestion = "Brother of " + _this.root.name;
-          name = prompt("What's the brother's name?", suggestion);
+          suggestion = _this.t("Brother of " + _this.root.name, "Frère de " + _this.root.name);
+          name = prompt(_this.t("What's the brother's name?", "Quel est le nom du frère ?"), suggestion);
           _this.cleanTree();
           brother = _this.root.addBrother(name);
           _this.people.push(brother);
@@ -180,8 +181,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-sister"]', (function(_this) {
         return function() {
           var name, sister, suggestion;
-          suggestion = "Sister of " + _this.root.name;
-          name = prompt("What's the sister's name?", suggestion);
+          suggestion = _this.t("Sister of " + _this.root.name, "Soeur de " + _this.root.name);
+          name = prompt(_this.t("What's the sister's name?", "Quel est le nom de la soeur ?"), suggestion);
           _this.cleanTree();
           sister = _this.root.addSister(name);
           _this.people.push(sister);
@@ -194,8 +195,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-son"]', (function(_this) {
         return function(event) {
           var name, partner, partnerUuid, son, suggestion;
-          suggestion = "Son of " + _this.root.name;
-          name = prompt("What's the son's name?", suggestion);
+          suggestion = _this.t("Son of " + _this.root.name, "Fils de " + _this.root.name);
+          name = prompt(_this.t("What's the son's name?", "Quel est le nom du fils ?"), suggestion);
           _this.cleanTree();
           partnerUuid = $(event.target).data('with');
           partner = _.findWhere(_this.people, {
@@ -212,8 +213,8 @@
       $('#family-tree-panel').on('click', 'button[data-action="add-daughter"]', (function(_this) {
         return function(event) {
           var daughter, name, partner, partnerUuid, suggestion;
-          suggestion = "Daughter of " + _this.root.name;
-          name = prompt("What's the daughter's name?", suggestion);
+          suggestion = _this.t("Daughter of " + _this.root.name, "Fille de " + _this.root.name);
+          name = prompt(_this.t("What's the daughter's name?", "Quel est le nom de la fille ?"), suggestion);
           _this.cleanTree();
           partnerUuid = $(event.target).data('with');
           partner = _.findWhere(_this.people, {
@@ -235,7 +236,7 @@
       return $('#family-tree-panel').on('click', 'button[data-action="remove"]', (function(_this) {
         return function(event) {
           var j, len, name, partnerRelation, ref;
-          if (confirm("Remove " + _this.root.name + "?")) {
+          if (confirm(_this("Remove " + _this.root.name + "?", "Supprimer " + _this.root.name + " ?"))) {
             _this.cleanTree();
             _this.people = _.without(_this.people, _this.root);
             if (_this.root.parents().length === 0) {
@@ -263,7 +264,7 @@
                 }
               }
             } else {
-              name = prompt("What's the first person's name?", 'Me');
+              name = prompt(_this.t("What's the first person's name?", "Quel est le nom de la première personne ?"), _this.t("Me", "Moi"));
               _this.root = new Person(name, 'M');
               _this.people.push(_this.root);
               _this.onCreate(_this.root);
@@ -332,25 +333,27 @@
     };
 
     FamilyTree.prototype.refreshMenu = function() {
-      var j, len, partner, ref;
+      var daughterCaption, j, len, partner, ref, sonCaption;
       $("#family-tree-panel div").empty();
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">Add Partner</button>');
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + this.t("Add Partner", "Ajouter un partenaire") + '</button>');
       if (this.root.parentRelation) {
-        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">Add Brother</button>');
-        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">Add Sister</button>');
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + this.t("Add Brother", "Ajouter un frère") + '</button>');
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + this.t("Add Sister", "Ajouter une soeur") + '</button>');
       }
       if (!this.root.parentRelation) {
-        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">Add Parents</button>');
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">' + this.t("Add Parents", "Ajouter les parents") + '</button>');
       }
       ref = this.root.partners();
       for (j = 0, len = ref.length; j < len; j++) {
         partner = ref[j];
-        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"" + partner.uuid + "\">Add son with " + partner.name + "</button>");
-        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"" + partner.uuid + "\">Add daughter with " + partner.name + "</button>");
+        sonCaption = this.t("Add son with " + partner.name, "Ajouter un fils avec " + partner.name);
+        daughterCaption = this.t("Add daughter with " + partner.name, "Aouter une fille avec " + partner.name);
+        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"" + partner.uuid + "\">" + sonCaption + "</button>");
+        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"" + partner.uuid + "\">" + daughterCaption + "</button>");
       }
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">Edit</button>");
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + this.t("Edit", "Modifier") + "</button>");
       if (!this.root.partnerRelations.length || this.root.children().length === 0) {
-        return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">Remove</button>");
+        return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + this.t("Delete", "Supprimer") + "</button>");
       }
     };
 
@@ -476,6 +479,14 @@
       }
       this.rootNode.displayTree(this.x, this.y);
       return this.renderer.render(this.stage);
+    };
+
+    FamilyTree.prototype.t = function(enText, frText) {
+      if (this.locale === 'en') {
+        return enText;
+      } else {
+        return frText;
+      }
     };
 
     return FamilyTree;

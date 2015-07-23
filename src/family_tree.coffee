@@ -6,6 +6,7 @@ class @FamilyTree
     @people   = options.people || []
     @root     = options.root
     @saveData = options.saveData
+    @locale   = options.locale || 'en'
     @stage    = new PIXI.Container()
 
     @onCreate = (person) =>
@@ -23,7 +24,7 @@ class @FamilyTree
       @deserialize(options.serializedData)
 
     if @people.length == 0
-      name  = prompt("What's the first person's name?", 'Me')
+      name  = prompt(@t("What's the first person's name?", "Quel est le nom de la première personne ?"), 'Me')
       @root = new Person(name, 'M')
       @people.push(@root)
       @onCreate(@root)
@@ -84,11 +85,11 @@ class @FamilyTree
   bindMenu: ->
     $('#family-tree-panel').on('click', 'button[data-action="add-partner"]', =>
       if @root.sex == 'M'
-        suggestion = "Wife of #{@root.name}"
+        suggestion = @t("Wife of #{@root.name}", "Femme de #{@root.name}")
       else if @root.sex == 'F'
-        suggestion = "Husband of #{@root.name}"
+        suggestion = @t("Husband of #{@root.name}", "Mari de #{@root.name}")
 
-      name = prompt("What's the partner's name?", suggestion)
+      name = prompt(@t("What's the partner's name?", "Quel est le nom du partenaire ?"), suggestion)
 
       @cleanTree()
       partner = @root.addPartner(name)
@@ -99,11 +100,11 @@ class @FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-parents"]', =>
-      father_suggestion = "Father of #{@root.name}"
-      father_name       = prompt("What's the father's name?", father_suggestion)
+      father_suggestion = @t("Father of #{@root.name}", "Père de #{@root.name}")
+      father_name       = prompt(@t("What's the father's name?", "Quel est le nom du père ?"), father_suggestion)
 
-      mother_suggestion = "Mother of #{@root.name}"
-      mother_name       = prompt("What's the mother's name?", mother_suggestion)
+      mother_suggestion = @t("Mother of #{@root.name}", "Mère de #{@root.name}")
+      mother_name       = prompt(@t("What's the mother's name?", "Quel est le nom de la mère ?"), mother_suggestion)
 
       @cleanTree()
       parents = @root.addParents(father_name, mother_name)
@@ -117,8 +118,8 @@ class @FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-brother"]', =>
-      suggestion = "Brother of #{@root.name}"
-      name       = prompt("What's the brother's name?", suggestion)
+      suggestion = @t("Brother of #{@root.name}", "Frère de #{@root.name}")
+      name       = prompt(@t("What's the brother's name?", "Quel est le nom du frère ?"), suggestion)
 
       @cleanTree()
       brother = @root.addBrother(name)
@@ -130,8 +131,8 @@ class @FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-sister"]', =>
-      suggestion = "Sister of #{@root.name}"
-      name       = prompt("What's the sister's name?", suggestion)
+      suggestion = @t("Sister of #{@root.name}", "Soeur de #{@root.name}")
+      name       = prompt(@t("What's the sister's name?", "Quel est le nom de la soeur ?"), suggestion)
 
       @cleanTree()
       sister = @root.addSister(name)
@@ -143,8 +144,8 @@ class @FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-son"]', (event) =>
-      suggestion = "Son of #{@root.name}"
-      name       = prompt("What's the son's name?", suggestion)
+      suggestion = @t("Son of #{@root.name}", "Fils de #{@root.name}")
+      name       = prompt(@t("What's the son's name?", "Quel est le nom du fils ?"), suggestion)
 
       @cleanTree()
 
@@ -160,8 +161,8 @@ class @FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-daughter"]', (event) =>
-      suggestion = "Daughter of #{@root.name}"
-      name       = prompt("What's the daughter's name?", suggestion)
+      suggestion = @t("Daughter of #{@root.name}", "Fille de #{@root.name}")
+      name       = prompt(@t("What's the daughter's name?", "Quel est le nom de la fille ?"), suggestion)
 
       @cleanTree()
 
@@ -181,7 +182,7 @@ class @FamilyTree
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="remove"]', (event) =>
-      if confirm("Remove #{@root.name}?")
+      if confirm(@("Remove #{@root.name}?", "Supprimer #{@root.name} ?"))
         @cleanTree()
 
         @people = _.without(@people, @root)
@@ -209,7 +210,7 @@ class @FamilyTree
             else if @root.sex == 'F'
               @root = @root.partnerRelations[0].husband
         else
-          name  = prompt("What's the first person's name?", 'Me')
+          name  = prompt(@t("What's the first person's name?", "Quel est le nom de la première personne ?"), @t("Me", "Moi"))
           @root = new Person(name, 'M')
           @people.push(@root)
           @onCreate(@root)
@@ -257,23 +258,25 @@ class @FamilyTree
 
   refreshMenu: ->
     $("#family-tree-panel div").empty()
-    $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">Add Partner</button>')
+    $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + @t("Add Partner", "Ajouter un partenaire") + '</button>')
 
     if @root.parentRelation
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">Add Brother</button>')
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">Add Sister</button>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + @t("Add Brother", "Ajouter un frère") + '</button>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + @t("Add Sister", "Ajouter une soeur") + '</button>')
 
     if !@root.parentRelation
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">Add Parents</button>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">' + @t("Add Parents", "Ajouter les parents") + '</button>')
 
     for partner in @root.partners()
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"#{partner.uuid}\">Add son with #{partner.name}</button>")
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">Add daughter with #{partner.name}</button>")
+      sonCaption      = @t("Add son with #{partner.name}", "Ajouter un fils avec #{partner.name}")
+      daughterCaption = @t("Add daughter with #{partner.name}", "Aouter une fille avec #{partner.name}")
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"#{partner.uuid}\">#{sonCaption}</button>")
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">#{daughterCaption}</button>")
 
-    $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">Edit</button>")
+    $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + @t("Edit", "Modifier") + "</button>")
 
     if !@root.partnerRelations.length || @root.children().length == 0
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">Remove</button>")
+      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + @t("Delete", "Supprimer") + "</button>")
 
 
 
@@ -365,3 +368,9 @@ class @FamilyTree
     @rootNode.displayTree(@x, @y)
 
     @renderer.render(@stage)
+
+  t: (enText, frText) ->
+    if @locale == 'en'
+      enText
+    else
+      frText
