@@ -16,17 +16,8 @@ class @PersonNode
     @bindRectangle()
 
   initializeRectangle: ->
-    color = if @person.sex == 'M' then 0xB4D8E7 else 0xFFC0CB
-
     @graphics = new PIXI.Graphics()
-    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
-    @graphics.beginFill(color)
-
-    if @person.sex == 'M'
-      @drawRectangle()
-    else
-      @drawRoundRectangle()
-
+    @drawGraphics()
     @stage.addChild(@graphics)
 
   initializeText: ->
@@ -50,6 +41,24 @@ class @PersonNode
       @vLine.moveTo(0, 0)
       @vLine.lineTo(0, -Constants.verticalMargin / 2)
       @stage.addChild(@vLine)
+
+  drawGraphics: ->
+    @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
+
+    if @root
+      color = 0xF1F1F1
+    else
+      if @person.sex == 'M'
+        color = 0xB4D8E7
+      else
+        color = 0xFFC0CB
+
+    @graphics.beginFill(color)
+
+    if @person.sex == 'M'
+      @drawRectangle()
+    else
+      @drawRoundRectangle()
 
   drawRectangle: ->
     @graphics.drawRect(
@@ -90,9 +99,11 @@ class @PersonNode
       moveY = Math.abs(familyTree.startOffsetY - event.y)
 
       if moveX + moveY < 10
-        familyTree.rootNode.root      = false
-        familyTree.rootNode           = @
-        familyTree.root               = @person
+        familyTree.oldRootNode = familyTree.rootNode
+
+        familyTree.rootNode.root = false
+        familyTree.rootNode      = @
+        familyTree.root          = @person
 
         familyTree.refreshMenu()
 
@@ -201,6 +212,18 @@ class @PersonNode
 
   displayTree: (x, y) ->
     @root = true
+
+    # Redraw this person with highlight
+    @graphics.clear
+    @drawGraphics()
+
+    # Redraw old selected person to remove highlight
+    if @stage.familyTree.oldRootNode
+      @stage.familyTree.oldRootNode.graphics.clear()
+      @stage.familyTree.oldRootNode.drawGraphics()
+
+    @stage.familyTree.renderer.render(@stage)
+
     @setPosition(x, y)
     @updateBottomPeople()
     @updateTopPeople()
@@ -255,9 +278,11 @@ class @PersonNode
 
         start = (husband.node.x + wife.node.x) / 2
 
-        if children.length > 1
-          childrenSize = partnerRelation.node.globalWidth()
-          start        = start - childrenSize / 2 + Constants.width / 2
+        if children.length == 1
+          start = start + Constants.width / 2 + Constants.margin / 2
+
+        childrenSize = partnerRelation.node.globalWidth()
+        start        = start - childrenSize / 2 + Constants.width / 2
 
         for child, i in children
           offset = child.node.x - child.node.leftMostNodeX()
@@ -340,44 +365,42 @@ class @PersonNode
     if @person.siblings().length == 0
       parentsCenter = @x
     else
-      right        = father.node.rightMostNodeX()
-      left         = father.node.leftMostNodeX()
+      right         = mother.node.rightMostNodeX()
+      left          = father.node.leftMostNodeX()
       parentsCenter = left + (right - left) / 2
 
     ##
     if align == 'left' || align == 'right'
       # Update positions of top people (to know the global size of this part)
-      #father.node.setPosition(@x - 1000, @y)
-      father.node.updateTopPeople()
-      #mother.node.setPosition(@x - 1000, @y)
-      mother.node.updateTopPeople()
+      # father.node.setPosition(@x - Constants.margin / 2, @y)
+      # mother.node.setPosition(@x + Constants.margin / 2, @y)
+      if father.parentRelation && mother.parentRelation
+        father.node.updateTopPeople('left')
+        mother.node.updateTopPeople('right')
+      # If only 1 parent (or 0), align him/her on the center
+      else
+        father.node.updateTopPeople('center')
+        mother.node.updateTopPeople('center')
 
       a = @leftMostParentNodeX()  - Constants.width / 2
       b = @rightMostParentNodeX() + Constants.width / 2
-      console.log "-- #{@person.name}"
-      console.log "left #{a}"
-      console.log "right #{b}"
-    ##
+
+      # TODO : trouver offset et le mettre à la main sur chaque noeud montant
 
       if align == 'left'
-        console.log "HELP"
-        parentsCenter = Math.min(@x + Constants.width / 2 - (b-a) / 2, parentsCenter)
-      else if align == 'right'
-        offset = 0#(parentsCenter - a) - (parentsCenter - @x - Constants.width / 2)#@x - a - Constants.width / 2
-        console.log v = (parentsCenter - a)
-        console.log w = (parentsCenter - @x + Constants.width / 2)
-        console.log "offset #{v - w}"
-        console.log "debut: #{@x - Constants.width / 2}"
-        console.log "fin: #{@x - Constants.width / a}"
-        if Math.abs(@x - a) < 1
-          offset = (v-w)
-        else
-          offset = 0
-        parentsCenter = Math.max(@x - Constants.width / 2 + (b-a) / 2 + offset, parentsCenter)
+        v = b  - parentsCenter
+        w = @x - parentsCenter + Constants.width / 2
 
-      console.log "x : #{@x}"
-      console.log "size: #{(b-a)}"
-      console.log "center #{parentsCenter}"
+        offset = if Math.abs(v - w) > 1 then v - w else 0
+        console.log offset
+        parentsCenter = Math.min(@x + Constants.width / 2 - (b-a) / 2 - offset / 2, parentsCenter)
+      else if align == 'right'
+        v = parentsCenter - a
+        w = parentsCenter - @x - Constants.width / 2
+
+        offset = if Math.abs(w-v) > 1 then v - w else 0
+        console.log offset
+        parentsCenter = Math.max(@x - Constants.width / 2 + (b-a) / 2 + offset /2, parentsCenter)
 
     father.node.setPosition(parentsCenter - Constants.margin / 2 - Constants.width / 2, y)
     mother.node.setPosition(parentsCenter + Constants.margin / 2 + Constants.width / 2, y)
