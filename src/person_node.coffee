@@ -278,9 +278,6 @@ class @PersonNode
       start = (husband.node.x + wife.node.x) / 2
 
       if children.length == 1
-        #if children[0].sex == 'F' && children[0].partnerRelations.length > 0
-          #start = start - Constants.width / 2 - Constants.margin / 2
-        #else
         start = start + Constants.width / 2 + Constants.margin / 2
 
       childrenSize = partnerRelation.node.globalWidth()
