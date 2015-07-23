@@ -6,7 +6,6 @@ class @FamilyTree
     @people   = options.people || []
     @root     = options.root
     @saveData = options.saveData
-    @locale   = options.locale || 'en'
     @stage    = new PIXI.Container()
 
     @onCreate = (person) =>

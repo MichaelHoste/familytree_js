@@ -20,7 +20,7 @@
     Constants.verticalMargin = Constants.margin * 1.5;
 
     Constants.t = function(enText, frText) {
-      if (this.locale === 'en') {
+      if (this.locale === void 0 || this.locale === 'en') {
         return enText;
       } else {
         return frText;
@@ -43,7 +43,6 @@
       this.people = options.people || [];
       this.root = options.root;
       this.saveData = options.saveData;
-      this.locale = options.locale || 'en';
       this.stage = new PIXI.Container();
       this.onCreate = (function(_this) {
         return function(person) {

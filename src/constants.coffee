@@ -9,7 +9,7 @@ class @Constants
   @verticalMargin = @margin * 1.5
 
   @t: (enText, frText) ->
-    if @locale == 'en'
+    if @locale == undefined || @locale == 'en'
       enText
     else
       frText
