@@ -30,6 +30,30 @@ class @Person
   grandparents: ->
     @father().parents().concat(@mother().parents())
 
+  ancestors: ->
+    parents = @parents()
+
+    if _.isEmpty(parents)
+      []
+    else
+      parents.concat(@father().ancestors()).concat(@mother().ancestors())
+
+  descendants: ->
+    children = @children()
+
+    if _.isEmpty(children)
+      []
+    else
+      children.concat(
+        _.compact(
+          _.flatten(
+            _.map(children, (child) ->
+              child.descendants()
+          )
+        )
+      )
+    )
+
   siblings: ->
     if @parentRelation
       _.difference(@parentRelation.children, [this])
@@ -48,6 +72,18 @@ class @Person
     _.flatten(_.collect(@parentsSiblings(), (sibling) ->
       sibling.children()
     ))
+
+  bloodRelatives: ->
+    _.uniq(
+      _.flatten(
+        _.map(@ancestors(), (ancestor) ->
+          ancestor.descendants().concat([ancestor])
+        )
+      )
+    )
+
+  isBloodRelativeOf: (otherPerson) ->
+    _.includes(@bloodRelatives(), otherPerson)
 
   relationWith: (person) ->
     _.find(@partnerRelations, (relation) =>

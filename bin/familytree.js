@@ -524,6 +524,28 @@
       return this.father().parents().concat(this.mother().parents());
     };
 
+    Person.prototype.ancestors = function() {
+      var parents;
+      parents = this.parents();
+      if (_.isEmpty(parents)) {
+        return [];
+      } else {
+        return parents.concat(this.father().ancestors()).concat(this.mother().ancestors());
+      }
+    };
+
+    Person.prototype.descendants = function() {
+      var children;
+      children = this.children();
+      if (_.isEmpty(children)) {
+        return [];
+      } else {
+        return children.concat(_.compact(_.flatten(_.map(children, function(child) {
+          return child.descendants();
+        }))));
+      }
+    };
+
     Person.prototype.siblings = function() {
       if (this.parentRelation) {
         return _.difference(this.parentRelation.children, [this]);
@@ -546,6 +568,16 @@
       return _.flatten(_.collect(this.parentsSiblings(), function(sibling) {
         return sibling.children();
       }));
+    };
+
+    Person.prototype.bloodRelatives = function() {
+      return _.uniq(_.flatten(_.map(this.ancestors(), function(ancestor) {
+        return ancestor.descendants().concat([ancestor]);
+      })));
+    };
+
+    Person.prototype.isBloodRelativeOf = function(otherPerson) {
+      return _.includes(this.bloodRelatives(), otherPerson);
     };
 
     Person.prototype.relationWith = function(person) {
@@ -744,8 +776,10 @@
         this.text.position.x = x;
         this.text.position.y = y;
         if (this.person.parentRelation) {
-          this.vLine.position.x = x;
-          return this.vLine.position.y = y - Constants.height / 2;
+          if (this.person.isBloodRelativeOf(this.stage.familyTree.root)) {
+            this.vLine.position.x = x;
+            return this.vLine.position.y = y - Constants.height / 2;
+          }
         }
       }
     };

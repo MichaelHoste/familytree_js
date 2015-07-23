@@ -131,8 +131,9 @@ class @PersonNode
 
       # Parent line (only if parent is displayed)
       if @person.parentRelation
-        @vLine.position.x = x
-        @vLine.position.y = y - Constants.height / 2
+        if @person.isBloodRelativeOf(@stage.familyTree.root)
+          @vLine.position.x = x
+          @vLine.position.y = y - Constants.height / 2
 
   # leftmost node (in himself, relations or children)
   leftMostNodeX: ->
@@ -209,6 +210,7 @@ class @PersonNode
     @text.position.y     = -1000
 
   hideVLine: ->
+    #console.log("hideVLine #{@person.name}")
     @vLine.position.x  = -1000 if @vLine
     @vLine.position.y  = -1000 if @vLine
 
