@@ -86,7 +86,6 @@ class @FamilyTree
 
       @refreshStage()
       @refreshMenu()
-      @save()
 
     $('#family-tree-panel').on('click', 'button[data-action="add-man"]', =>
       name  = prompt(@t("What's the first man's name?", "Quel est le nom du premier homme ?"), @t("Me", "Moi"))

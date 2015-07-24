@@ -126,8 +126,7 @@
         _this.people.push(_this.root);
         _this.onCreate(_this.root);
         _this.refreshStage();
-        _this.refreshMenu();
-        return _this.save();
+        return _this.refreshMenu();
       };
       $('#family-tree-panel').on('click', 'button[data-action="add-man"]', function() {
         var name;
