@@ -25,7 +25,10 @@ class @FamilyTree
       @deserialize(options.serializedData)
 
     if @people.length == 0
-      name  = prompt(@t("What's the first person's name?", "Quel est le nom de la première personne ?"), 'Me')
+      defaultName = @t('Me', 'Moi')
+      name = prompt(@t("What's the first person's name?", "Quel est le nom de la première personne ?"), defaultName)
+      name = defaultName if !name
+
       @root = new Person(name, 'M')
       @people.push(@root)
       @onCreate(@root)
@@ -93,90 +96,98 @@ class @FamilyTree
 
       name = prompt(@t("What's the partner's name?", "Quel est le nom du partenaire ?"), suggestion)
 
-      @cleanTree()
-      partner = @root.addPartner(name)
-      @people.push(partner)
-      @refreshStage()
-      @refreshMenu()
-      @save()
+      if name
+        @cleanTree()
+        partner = @root.addPartner(name)
+        @people.push(partner)
+        @onCreate(partner)
+        @refreshStage()
+        @refreshMenu()
+        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-parents"]', =>
-      father_suggestion = @t("Father of #{@root.name}", "Père de #{@root.name}")
-      father_name       = prompt(@t("What's the father's name?", "Quel est le nom du père ?"), father_suggestion)
+      fatherSuggestion = @t("Father of #{@root.name}", "Père de #{@root.name}")
+      fatherName       = prompt(@t("What's the father's name?", "Quel est le nom du père ?"), fatherSuggestion)
 
-      mother_suggestion = @t("Mother of #{@root.name}", "Mère de #{@root.name}")
-      mother_name       = prompt(@t("What's the mother's name?", "Quel est le nom de la mère ?"), mother_suggestion)
+      if fatherName
+        motherSuggestion = @t("Mother of #{@root.name}", "Mère de #{@root.name}")
+        motherName       = prompt(@t("What's the mother's name?", "Quel est le nom de la mère ?"), motherSuggestion)
 
-      @cleanTree()
-      parents = @root.addParents(father_name, mother_name)
-      @people.push(parents[0])
-      @onCreate(parents[0])
-      @people.push(parents[1])
-      @onCreate(parents[1])
-      @refreshStage()
-      @refreshMenu()
-      @save()
+        if fatherName && motherName
+          @cleanTree()
+          parents = @root.addParents(fatherName, motherName)
+          @people.push(parents[0])
+          @onCreate(parents[0])
+          @people.push(parents[1])
+          @onCreate(parents[1])
+          @refreshStage()
+          @refreshMenu()
+          @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-brother"]', =>
       suggestion = @t("Brother of #{@root.name}", "Frère de #{@root.name}")
       name       = prompt(@t("What's the brother's name?", "Quel est le nom du frère ?"), suggestion)
 
-      @cleanTree()
-      brother = @root.addBrother(name)
-      @people.push(brother)
-      @onCreate(brother)
-      @refreshStage()
-      @refreshMenu()
-      @save()
+      if name
+        @cleanTree()
+        brother = @root.addBrother(name)
+        @people.push(brother)
+        @onCreate(brother)
+        @refreshStage()
+        @refreshMenu()
+        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-sister"]', =>
       suggestion = @t("Sister of #{@root.name}", "Soeur de #{@root.name}")
       name       = prompt(@t("What's the sister's name?", "Quel est le nom de la soeur ?"), suggestion)
 
-      @cleanTree()
-      sister = @root.addSister(name)
-      @people.push(sister)
-      @onCreate(sister)
-      @refreshStage()
-      @refreshMenu()
-      @save()
+      if name
+        @cleanTree()
+        sister = @root.addSister(name)
+        @people.push(sister)
+        @onCreate(sister)
+        @refreshStage()
+        @refreshMenu()
+        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-son"]', (event) =>
       suggestion = @t("Son of #{@root.name}", "Fils de #{@root.name}")
       name       = prompt(@t("What's the son's name?", "Quel est le nom du fils ?"), suggestion)
 
-      @cleanTree()
+      if name
+        @cleanTree()
 
-      partnerUuid = $(event.target).data('with')
-      partner     = _.findWhere(@people, { uuid: partnerUuid })
-      son         = @root.relationWith(partner).addChild(name, 'M')
+        partnerUuid = $(event.target).data('with')
+        partner     = _.findWhere(@people, { uuid: partnerUuid })
+        son         = @root.relationWith(partner).addChild(name, 'M')
 
-      @people.push(son)
-      @onCreate(son)
-      @refreshStage()
-      @refreshMenu()
-      @save()
+        @people.push(son)
+        @onCreate(son)
+        @refreshStage()
+        @refreshMenu()
+        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-daughter"]', (event) =>
       suggestion = @t("Daughter of #{@root.name}", "Fille de #{@root.name}")
       name       = prompt(@t("What's the daughter's name?", "Quel est le nom de la fille ?"), suggestion)
 
-      @cleanTree()
+      if name
+        @cleanTree()
 
-      partnerUuid  = $(event.target).data('with')
-      partner      = _.findWhere(@people, { uuid: partnerUuid })
-      daughter     = @root.relationWith(partner).addChild(name, 'F')
+        partnerUuid  = $(event.target).data('with')
+        partner      = _.findWhere(@people, { uuid: partnerUuid })
+        daughter     = @root.relationWith(partner).addChild(name, 'F')
 
-      @people.push(daughter)
-      @onCreate(daughter)
-      @refreshStage()
-      @refreshMenu()
-      @save()
+        @people.push(daughter)
+        @onCreate(daughter)
+        @refreshStage()
+        @refreshMenu()
+        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="edit"]', (event) =>
@@ -288,7 +299,7 @@ class @FamilyTree
   cleanTree: ->
     for person in @people
       person.node.hideRectangle()
-      person.node.hideVLine()
+      person.node.hideVLines()
 
       for partnerRelation in person.partnerRelations
         partnerRelation.node.hideLines()

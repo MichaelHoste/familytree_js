@@ -10,6 +10,7 @@ class @PersonNode
     @person.node = this
 
     @initializeVLine()
+    @initializeSmallVLine()
     @initializeRectangle()
     @initializeText()
 
@@ -41,7 +42,16 @@ class @PersonNode
       @vLine.moveTo(0, 0)
       @vLine.lineTo(0, -Constants.verticalMargin / 2)
       @stage.addChild(@vLine)
-      @hideVLine()
+      @hideVLines()
+
+  initializeSmallVLine: ->
+    if @person.parentRelation
+      @smallVLine = new PIXI.Graphics()
+      @smallVLine.lineStyle(Constants.lineWidth, 0xC0C0C0, 1)
+      @smallVLine.moveTo(0, 0)
+      @smallVLine.lineTo(0, -Constants.verticalMargin / 4)
+      @stage.addChild(@smallVLine)
+      @hideVLines()
 
   drawGraphics: ->
     @graphics.lineStyle(Constants.lineWidth, 0x333333, 1)
@@ -134,6 +144,9 @@ class @PersonNode
         if @person.isBloodRelativeOf(@stage.familyTree.root)
           @vLine.position.x = x
           @vLine.position.y = y - Constants.height / 2
+        else
+          @smallVLine.position.x = x
+          @smallVLine.position.y = y - Constants.height / 2
 
   # leftmost node (in himself, relations or children)
   leftMostNodeX: ->
@@ -209,10 +222,13 @@ class @PersonNode
     @text.position.x     = -1000
     @text.position.y     = -1000
 
-  hideVLine: ->
+  hideVLines: ->
     #console.log("hideVLine #{@person.name}")
     @vLine.position.x  = -1000 if @vLine
     @vLine.position.y  = -1000 if @vLine
+
+    @smallVLine.position.x  = -1000 if @smallVLine
+    @smallVLine.position.y  = -1000 if @smallVLine
 
   displayTree: (x, y) ->
     @root = true
