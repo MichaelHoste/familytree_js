@@ -1082,6 +1082,11 @@
             partnerRelation.node.childrenHLineEndX = _.last(children).node.x;
             partnerRelation.node.childrenHLineY = this.y + Constants.verticalMargin / 2;
             _results.push(partnerRelation.node.drawChildrenHLine());
+          } else if (children.length === 1) {
+            partnerRelation.node.childrenHLineStartX = this.x + (this.person.partners()[0].node.x - this.x) / 2;
+            partnerRelation.node.childrenHLineEndX = children[0].node.x;
+            partnerRelation.node.childrenHLineY = this.y + Constants.verticalMargin / 2;
+            _results.push(partnerRelation.node.drawChildrenHLine());
           } else {
             _results.push(void 0);
           }

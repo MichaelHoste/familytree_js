@@ -323,6 +323,12 @@ class @PersonNode
           partnerRelation.node.childrenHLineEndX   = _.last(children).node.x
           partnerRelation.node.childrenHLineY      = @y + Constants.verticalMargin / 2
           partnerRelation.node.drawChildrenHLine()
+        else if children.length == 1
+          partnerRelation.node.childrenHLineStartX = @x + (@person.partners()[0].node.x - @x) / 2
+          partnerRelation.node.childrenHLineEndX   = children[0].node.x
+          partnerRelation.node.childrenHLineY      = @y + Constants.verticalMargin / 2
+          partnerRelation.node.drawChildrenHLine()
+
 
   drawRelationTopVerticalLine: ->
     for partnerRelation, i in @person.partnerRelations
