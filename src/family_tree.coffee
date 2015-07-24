@@ -24,15 +24,6 @@ class @FamilyTree
     if options.serializedData
       @deserialize(options.serializedData)
 
-    if @people.length == 0
-      defaultName = @t('Me', 'Moi')
-      name = prompt(@t("What's the first person's name?", "Quel est le nom de la première personne ?"), defaultName)
-      name = defaultName if !name
-
-      @root = new Person(name, 'M')
-      @people.push(@root)
-      @onCreate(@root)
-
     if $('#family-tree').length
       @initializeRenderer()
 
@@ -88,6 +79,25 @@ class @FamilyTree
     @background.on('touchmove',       onMove)
 
   bindMenu: ->
+    createFirstPerson = (name, sex) =>
+      @root = new Person(name, sex)
+      @people.push(@root)
+      @onCreate(@root)
+
+      @refreshStage()
+      @refreshMenu()
+      @save()
+
+    $('#family-tree-panel').on('click', 'button[data-action="add-man"]', =>
+      name  = prompt(@t("What's the first man's name?", "Quel est le nom du premier homme ?"), @t("Me", "Moi"))
+      createFirstPerson(name, 'M') if name
+    )
+
+    $('#family-tree-panel').on('click', 'button[data-action="add-woman"]', =>
+      name  = prompt(@t("What's the first man's name?", "Quel est le nom de la première femme ?"), @t("Me", "Moi"))
+      createFirstPerson(name, 'F') if name
+    )
+
     $('#family-tree-panel').on('click', 'button[data-action="add-partner"]', =>
       if @root.sex == 'M'
         suggestion = @t("Wife of #{@root.name}", "Femme de #{@root.name}")
@@ -217,11 +227,6 @@ class @FamilyTree
               @root = @root.partnerRelations[0].wife
             else if @root.sex == 'F'
               @root = @root.partnerRelations[0].husband
-        else
-          name  = prompt(@t("What's the first person's name?", "Quel est le nom de la première personne ?"), @t("Me", "Moi"))
-          @root = new Person(name, 'M')
-          @people.push(@root)
-          @onCreate(@root)
 
         @refreshStage()
         @refreshMenu()
@@ -264,27 +269,31 @@ class @FamilyTree
   refreshMenu: ->
     $("#family-tree-panel div").empty()
 
-    if !@root.partnerRelations.length
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + @t("Add Partner", "Ajouter un partenaire") + '</button>')
+    if @people.length == 0
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-man">'   + @t("Add Man",   "Ajouter un homme")  + '</button>')
+      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-woman">' + @t("Add Woman", "Ajouter une femme") + '</button>')
+    else
+      if !@root.partnerRelations.length
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-partner">' + @t("Add Partner", "Ajouter un partenaire") + '</button>')
 
-    if @root.parentRelation
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + @t("Add Brother", "Ajouter un frère") + '</button>')
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + @t("Add Sister", "Ajouter une soeur") + '</button>')
+      if @root.parentRelation
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-brother">' + @t("Add Brother", "Ajouter un frère") + '</button>')
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-sister">' + @t("Add Sister", "Ajouter une soeur") + '</button>')
 
-    if !@root.parentRelation
-      $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">' + @t("Add Parents", "Ajouter les parents") + '</button>')
+      if !@root.parentRelation
+        $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-parents">' + @t("Add Parents", "Ajouter les parents") + '</button>')
 
-    for partner in @root.partners()
-      sonCaption      = @t("Add son with #{partner.name}", "Ajouter un fils avec #{partner.name}")
-      daughterCaption = @t("Add daughter with #{partner.name}", "Aouter une fille avec #{partner.name}")
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"#{partner.uuid}\">#{sonCaption}</button>")
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">#{daughterCaption}</button>")
+      for partner in @root.partners()
+        sonCaption      = @t("Add son with #{partner.name}", "Ajouter un fils avec #{partner.name}")
+        daughterCaption = @t("Add daughter with #{partner.name}", "Aouter une fille avec #{partner.name}")
+        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-son\"      data-with=\"#{partner.uuid}\">#{sonCaption}</button>")
+        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"add-daughter\" data-with=\"#{partner.uuid}\">#{daughterCaption}</button>")
 
-    if @options.onEdit
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + @t("Edit", "Modifier") + "</button>")
+      if @options.onEdit
+        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + @t("Edit", "Modifier") + "</button>")
 
-    if !@root.partnerRelations.length || @root.children().length == 0
-      $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + @t("Delete", "Supprimer") + "</button>")
+      if !@root.partnerRelations.length || @root.children().length == 0
+        $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + @t("Delete", "Supprimer") + "</button>")
 
   cleanTree: ->
     for person in @people
@@ -368,6 +377,6 @@ class @FamilyTree
     @x = @width  / 2 if @x == undefined
     @y = @height / 2 if @y == undefined
 
-    @rootNode.displayTree(@x, @y)
+    @rootNode.displayTree(@x, @y) if @rootNode
 
     @renderer.render(@stage)

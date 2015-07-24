@@ -100,14 +100,11 @@
         people.push(bob_marlaine[0])
         people.push(bob_marlaine[1])
 
-        console.log(_.map(lisa.bloodRelatives(), function(p) { return p.name }))
-        // console.log(lisa.bloodRelatives())
-
         var familyTree = new FamilyTree({
           width: window.innerWidth,
           height: window.innerHeight,
-          people: people,
-          root: lisa
+          //people: [people],
+          //root: lisa
         });
 
       })

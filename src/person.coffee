@@ -49,10 +49,10 @@ class @Person
           _.flatten(
             _.map(children, (child) ->
               child.descendants()
+            )
           )
         )
       )
-    )
 
   siblings: ->
     if @parentRelation
