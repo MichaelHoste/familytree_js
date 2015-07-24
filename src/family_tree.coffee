@@ -241,11 +241,13 @@ class @FamilyTree
         for child in @root.partnerRelations[0].children
           child.parentRelation = undefined
 
+        oldRoot = @root
+
         @root     = @root.partnerRelations[0].children[0]
         @rootNode = @root.node
 
-        @onDelete(@root)
-        @onDelete(@root.partners()[0])
+        @onDelete(oldRoot)
+        @onDelete(oldRoot.partners()[0])
 
         @refreshStage()
         @refreshMenu()

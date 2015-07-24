@@ -276,7 +276,7 @@
         }
       });
       return $('#family-tree-panel').on('click', 'button[data-action="remove-couple"]', function(event) {
-        var child, _i, _len, _ref;
+        var child, oldRoot, _i, _len, _ref;
         if (confirm(_this.t("Remove couple?", "Supprimer le couple ?"))) {
           _this.cleanTree();
           _this.people = _.without(_this.people, _this.root);
@@ -286,10 +286,11 @@
             child = _ref[_i];
             child.parentRelation = void 0;
           }
+          oldRoot = _this.root;
           _this.root = _this.root.partnerRelations[0].children[0];
           _this.rootNode = _this.root.node;
-          _this.onDelete(_this.root);
-          _this.onDelete(_this.root.partners()[0]);
+          _this.onDelete(oldRoot);
+          _this.onDelete(oldRoot.partners()[0]);
           _this.refreshStage();
           return _this.refreshMenu();
         }
