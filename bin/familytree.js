@@ -286,10 +286,10 @@
             child = _ref[_i];
             child.parentRelation = void 0;
           }
-          _this.onDelete(_this.root);
-          _this.onDelete(_this.root.partners()[0]);
           _this.root = _this.root.partnerRelations[0].children[0];
           _this.rootNode = _this.root.node;
+          _this.onDelete(_this.root);
+          _this.onDelete(_this.root.partners()[0]);
           _this.refreshStage();
           return _this.refreshMenu();
         }
