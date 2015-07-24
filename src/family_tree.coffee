@@ -6,20 +6,20 @@ class @FamilyTree
     @height   = options.height
     @people   = options.people || []
     @root     = options.root
-    @saveData = options.saveData
     @stage    = new PIXI.Container()
     @t        = Constants.t
 
     @onCreate = (person) =>
-      options.onCreate(person) if options.onCreate
-      @save()
+      if options.onCreate
+        options.onCreate(person, @serialize())
 
     @onEdit   = (person) =>
-      options.onEdit(person) if options.onEdit
+      if options.onEdit
+        options.onEdit(person, @serialize())
 
     @onDelete = (person) =>
-      options.onDelete(person) if options.onDelete
-      @save()
+      if options.onDelete
+          options.onDelete(person, @serialize())
 
     if options.serializedData
       @deserialize(options.serializedData)
@@ -103,7 +103,6 @@ class @FamilyTree
         @onCreate(partner)
         @refreshStage()
         @refreshMenu()
-        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-parents"]', =>
@@ -123,7 +122,7 @@ class @FamilyTree
           @onCreate(parents[1])
           @refreshStage()
           @refreshMenu()
-          @save()
+
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-brother"]', =>
@@ -137,7 +136,6 @@ class @FamilyTree
         @onCreate(brother)
         @refreshStage()
         @refreshMenu()
-        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-sister"]', =>
@@ -151,7 +149,6 @@ class @FamilyTree
         @onCreate(sister)
         @refreshStage()
         @refreshMenu()
-        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-son"]', (event) =>
@@ -169,7 +166,6 @@ class @FamilyTree
         @onCreate(son)
         @refreshStage()
         @refreshMenu()
-        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="add-daughter"]', (event) =>
@@ -187,7 +183,6 @@ class @FamilyTree
         @onCreate(daughter)
         @refreshStage()
         @refreshMenu()
-        @save()
     )
 
     $('#family-tree-panel').on('click', 'button[data-action="edit"]', (event) =>
@@ -230,7 +225,6 @@ class @FamilyTree
 
         @refreshStage()
         @refreshMenu()
-        @save()
     )
 
   relations: ->
@@ -257,12 +251,8 @@ class @FamilyTree
         @rootNode = node
 
   refreshStage: ->
-    console.log @stage.children.length
-
     while @stage.children.length > 0
       @stage.removeChild(@stage.children[0])
-
-    console.log @stage.children.length
 
     @initializeBackground()
     @bindScroll()
@@ -368,9 +358,6 @@ class @FamilyTree
 
     # Reinitialize screen
     @refreshStage() if @renderer
-
-  save: ->
-    @saveData(@serialize()) if @saveData
 
   loadData: (data) ->
     @deserialize(serializedData)

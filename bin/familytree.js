@@ -43,30 +43,27 @@
       this.height = options.height;
       this.people = options.people || [];
       this.root = options.root;
-      this.saveData = options.saveData;
       this.stage = new PIXI.Container();
       this.t = Constants.t;
       this.onCreate = (function(_this) {
         return function(person) {
           if (options.onCreate) {
-            options.onCreate(person);
+            return options.onCreate(person, _this.serialize());
           }
-          return _this.save();
         };
       })(this);
       this.onEdit = (function(_this) {
         return function(person) {
           if (options.onEdit) {
-            return options.onEdit(person);
+            return options.onEdit(person, _this.serialize());
           }
         };
       })(this);
       this.onDelete = (function(_this) {
         return function(person) {
           if (options.onDelete) {
-            options.onDelete(person);
+            return options.onDelete(person, _this.serialize());
           }
-          return _this.save();
         };
       })(this);
       if (options.serializedData) {
@@ -158,8 +155,7 @@
             _this.people.push(partner);
             _this.onCreate(partner);
             _this.refreshStage();
-            _this.refreshMenu();
-            return _this.save();
+            return _this.refreshMenu();
           }
         };
       })(this));
@@ -179,8 +175,7 @@
               _this.people.push(parents[1]);
               _this.onCreate(parents[1]);
               _this.refreshStage();
-              _this.refreshMenu();
-              return _this.save();
+              return _this.refreshMenu();
             }
           }
         };
@@ -196,8 +191,7 @@
             _this.people.push(brother);
             _this.onCreate(brother);
             _this.refreshStage();
-            _this.refreshMenu();
-            return _this.save();
+            return _this.refreshMenu();
           }
         };
       })(this));
@@ -212,8 +206,7 @@
             _this.people.push(sister);
             _this.onCreate(sister);
             _this.refreshStage();
-            _this.refreshMenu();
-            return _this.save();
+            return _this.refreshMenu();
           }
         };
       })(this));
@@ -232,8 +225,7 @@
             _this.people.push(son);
             _this.onCreate(son);
             _this.refreshStage();
-            _this.refreshMenu();
-            return _this.save();
+            return _this.refreshMenu();
           }
         };
       })(this));
@@ -252,8 +244,7 @@
             _this.people.push(daughter);
             _this.onCreate(daughter);
             _this.refreshStage();
-            _this.refreshMenu();
-            return _this.save();
+            return _this.refreshMenu();
           }
         };
       })(this));
@@ -299,8 +290,7 @@
               _this.onCreate(_this.root);
             }
             _this.refreshStage();
-            _this.refreshMenu();
-            return _this.save();
+            return _this.refreshMenu();
           }
         };
       })(this));
@@ -351,11 +341,9 @@
 
     FamilyTree.prototype.refreshStage = function() {
       var j, num, results;
-      console.log(this.stage.children.length);
       while (this.stage.children.length > 0) {
         this.stage.removeChild(this.stage.children[0]);
       }
-      console.log(this.stage.children.length);
       this.initializeBackground();
       this.bindScroll();
       this.initializeNodesAndRelations();
@@ -495,12 +483,6 @@
       });
       if (this.renderer) {
         return this.refreshStage();
-      }
-    };
-
-    FamilyTree.prototype.save = function() {
-      if (this.saveData) {
-        return this.saveData(this.serialize());
       }
     };
 
