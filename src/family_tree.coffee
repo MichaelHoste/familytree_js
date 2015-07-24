@@ -231,6 +231,26 @@ class @FamilyTree
         @refreshMenu()
     )
 
+    $('#family-tree-panel').on('click', 'button[data-action="remove-couple"]', (event) =>
+      if confirm(@t("Remove couple?", "Supprimer le couple ?"))
+        @cleanTree()
+
+        @people = _.without(@people, @root)
+        @people = _.without(@people, @root.partners()[0])
+
+        for child in @root.partnerRelations[0].children
+          child.parentRelation = undefined
+
+        @onDelete(@root)
+        @onDelete(@root.partners()[0])
+
+        @root     = @root.partnerRelations[0].children[0]
+        @rootNode = @root.node
+
+        @refreshStage()
+        @refreshMenu()
+    )
+
   relations: ->
     relations = []
 
@@ -293,6 +313,12 @@ class @FamilyTree
 
       if !@root.partnerRelations.length || @root.children().length == 0
         $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + @t("Delete", "Supprimer") + "</button>")
+
+      if @root.partnerRelations.length == 1
+        coupleHasNoParents = !@root.partnerRelations[0].husband.parentRelation && !@root.partnerRelations[0].wife.parentRelation
+
+        if coupleHasNoParents && @root.children().length > 0
+          $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove-couple\">" + @t("Delete couple", "Supprimer le couple") + "</button>")
 
   cleanTree: ->
     for person in @people

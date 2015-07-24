@@ -241,7 +241,7 @@
       $('#family-tree-panel').on('click', 'button[data-action="edit"]', function(event) {
         return _this.onEdit(_this.root);
       });
-      return $('#family-tree-panel').on('click', 'button[data-action="remove"]', function(event) {
+      $('#family-tree-panel').on('click', 'button[data-action="remove"]', function(event) {
         var partnerRelation, _i, _len, _ref;
         if (confirm(_this.t("Remove " + _this.root.name + "?", "Supprimer " + _this.root.name + " ?"))) {
           _this.cleanTree();
@@ -271,6 +271,25 @@
               }
             }
           }
+          _this.refreshStage();
+          return _this.refreshMenu();
+        }
+      });
+      return $('#family-tree-panel').on('click', 'button[data-action="remove-couple"]', function(event) {
+        var child, _i, _len, _ref;
+        if (confirm(_this.t("Remove couple?", "Supprimer le couple ?"))) {
+          _this.cleanTree();
+          _this.people = _.without(_this.people, _this.root);
+          _this.people = _.without(_this.people, _this.root.partners()[0]);
+          _ref = _this.root.partnerRelations[0].children;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            child = _ref[_i];
+            child.parentRelation = void 0;
+          }
+          _this.onDelete(_this.root);
+          _this.onDelete(_this.root.partners()[0]);
+          _this.root = _this.root.partnerRelations[0].children[0];
+          _this.rootNode = _this.root.node;
           _this.refreshStage();
           return _this.refreshMenu();
         }
@@ -336,7 +355,7 @@
     };
 
     FamilyTree.prototype.refreshMenu = function() {
-      var daughterCaption, partner, sonCaption, _i, _len, _ref;
+      var coupleHasNoParents, daughterCaption, partner, sonCaption, _i, _len, _ref;
       $("#family-tree-panel div").empty();
       if (this.people.length === 0) {
         $('#family-tree-panel div').append('<button type="button" class="btn btn-default" data-action="add-man">' + this.t("Add Man", "Ajouter un homme") + '</button>');
@@ -364,7 +383,13 @@
           $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"edit\">" + this.t("Edit", "Modifier") + "</button>");
         }
         if (!this.root.partnerRelations.length || this.root.children().length === 0) {
-          return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + this.t("Delete", "Supprimer") + "</button>");
+          $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove\">" + this.t("Delete", "Supprimer") + "</button>");
+        }
+        if (this.root.partnerRelations.length === 1) {
+          coupleHasNoParents = !this.root.partnerRelations[0].husband.parentRelation && !this.root.partnerRelations[0].wife.parentRelation;
+          if (coupleHasNoParents && this.root.children().length > 0) {
+            return $('#family-tree-panel div').append("<button type=\"button\" class=\"btn btn-default\" data-action=\"remove-couple\">" + this.t("Delete couple", "Supprimer le couple") + "</button>");
+          }
         }
       }
     };
