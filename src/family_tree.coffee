@@ -215,7 +215,7 @@ class @FamilyTree
         else if @root.children().length == 0
           @root.parentRelation.children = _.without(@root.parentRelation.children, @root)
 
-        @onDelete(@root)
+        oldRoot = @root
 
         # new root
         if @people.length
@@ -227,6 +227,7 @@ class @FamilyTree
             else if @root.sex == 'F'
               @root = @root.partnerRelations[0].husband
 
+        @onDelete(@root)
         @refreshStage()
         @refreshMenu()
     )
